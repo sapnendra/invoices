@@ -13,7 +13,9 @@ export default function InvoiceHeader({ invoice }) {
     setIsDownloading(true);
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-      const response = await fetch(`${API_URL}/api/invoices/${invoice._id}/download-pdf`);
+      const response = await fetch(`${API_URL}/api/invoices/${invoice._id}/download-pdf`, {
+        credentials: 'include', // Include authentication cookies
+      });
       
       if (!response.ok) {
         throw new Error('Failed to download PDF');

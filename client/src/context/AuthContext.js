@@ -35,10 +35,8 @@ export const AuthProvider = ({ children }) => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('User authenticated:', data.user); // Debug log
         setUser(data.user);
       } else {
-        console.log('Not authenticated'); // Debug log
         setUser(null);
       }
     } catch (error) {
