@@ -7,6 +7,17 @@ const { calculateBalanceDue } = require('../utils/calculations');
 
 class InvoiceService {
   /**
+   * Get all invoices with summary information
+   */
+  async getAllInvoices() {
+    const invoices = await Invoice.find()
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return invoices;
+  }
+
+  /**
    * Get invoice by ID with line items and payments
    */
   async getInvoiceById(invoiceId) {

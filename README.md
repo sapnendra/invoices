@@ -42,6 +42,7 @@ invoice-details-page/
 - Status management (DRAFT → PAID)
 - Archive/restore invoices
 - MongoDB transactions for data integrity
+- Generate and download professional PDF invoices
 
 ### UI Features
 - Fully responsive design
@@ -146,7 +147,9 @@ The backend API will run on `http://localhost:5000`
 The API will be available at `http://localhost:5000/api`
 
 **Key Endpoints:**
+- `GET /api/invoices` - Get all invoices
 - `GET /api/invoices/:id` - Get invoice details
+- `GET /api/invoices/:id/download-pdf` - Download invoice as PDF
 - `POST /api/invoices/:id/payments` - Add a payment
 - `POST /api/invoices/:id/archive` - Archive an invoice
 - `POST /api/invoices/:id/restore` - Restore an archived invoice
@@ -329,7 +332,20 @@ Replace `{INVOICE_ID}` with one of the IDs from the seed script output.
 2. Status should change from DRAFT to "PAID"
 3. "Add Payment" button should disappear
 4. Progress bar shows 100%
-5. "Fully Paid" message appears
+5.# 6. Download Invoice as PDF
+1. Click "Download PDF" button in the invoice header
+2. Wait for PDF generation (shows "Generating PDF..." during processing)
+3. PDF automatically downloads with filename "Invoice-{InvoiceNumber}.pdf"
+4. Open the PDF and verify:
+   - Professional formatting with header and footer
+   - Invoice details (number, dates, status)
+   - Customer information
+   - Line items table with quantities, prices, and totals
+   - Payment summary box
+   - Payment history (if payments exist)
+   - Notes section (if notes exist)
+
+## "Fully Paid" message appears
 
 ## Design Reference
 
@@ -400,8 +416,9 @@ Make sure you are using a valid Invoice ID from the seed script output.
 ## Production Deployment
 
 ### Backend
-1. Set environment variables
-2. Update `MONGODB_URI` to production database
+1.Email invoice PDFs to customers
+- Bulk PDF generation for multiple invoices
+- Custom PDF templates with company brandingto production database
 3. Update `CLIENT_URL` to production frontend URL
 4. Deploy to service like Heroku, Railway, or DigitalOcean
 
@@ -422,6 +439,11 @@ Future enhancements you can add:
 - Dark mode
 - Invoice templates
 - Recurring invoices
+- **Implemented PDF generation and download**
+  - Professional PDF invoices with proper formatting
+  - Includes all invoice details, line items, and payments
+  - Download button on invoice detail page
+  - Automatic file naming based on invoice number
 - Payment reminders via email/SMS
 
 ## Recent Updates

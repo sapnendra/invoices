@@ -14,6 +14,7 @@ Complete API reference for the Invoice Details Module backend services.
 2. [Add Payment to Invoice](#2-add-payment-to-invoice)
 3. [Archive Invoice](#3-archive-invoice)
 4. [Restore Invoice](#4-restore-invoice)
+5. [Download Invoice as PDF](#5-download-invoice-as-pdf)
 
 ---
 
@@ -558,6 +559,145 @@ Body: (none required)
 
 ---
 
+## 5. Download Invoice as PDF
+
+Generate and download a professional PDF version of the invoice with all details, line items, and payment history.
+
+### Endpoint
+
+```
+GET /api/invoices/:id/download-pdf
+```
+
+### URL Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| id | String | Yes | MongoDB ObjectId of the invoice |
+
+### Success Response (200 OK)
+
+Returns a PDF file with proper headers for download.
+
+**Response Headers:**
+```
+Content-Type: application/pdf
+Content-Disposition: attachment; filename="Invoice-INV-2026-001.pdf"
+```
+
+### PDF Features
+
+The generated PDF includes:
+- **Professional Header:** Invoice number, dates, and status badge
+- **Customer Information:** Bill To and From details
+- **Line Items Table:** Itemized list with quantities, prices, and totals
+- **Payment Summary Box:** Total, Amount Paid, and Balance Due with color coding
+- **Payment History:** Chronological list of all payments made
+- **Notes Section:** Any additional notes from the invoice
+- **Professional Footer:** Thank you message and generation timestamp
+
+### Error Responses
+
+**Invoice Not Found (404)**
+```json
+{
+  "success": false,
+  "error": {
+    "message": "Invoice not found",
+    "statusCode": 404
+  }
+}
+```
+
+**Invalid Invoice ID (400)**
+```json
+{
+  "success": false,
+  "error": {
+    "message": "Invalid invoice ID format",
+    "statusCode": 400
+  }
+}
+```
+
+### cURL Example
+
+```bash
+# Download PDF to current directory
+curl -X GET http://localhost:5000/api/invoices/{INVOICE_ID}/download-pdf \
+  --output Invoice.pdf
+
+# Download with custom filename
+curl -X GET http://localhost:5000/api/invoices/{INVOICE_ID}/download-pdf \
+  --output "INV-2026-001.pdf"
+```
+
+### Postman Example
+
+```
+Method: GET
+URL: http://localhost:5000/api/invoices/699456682ce7e48234def28b/download-pdf
+
+Send and Save Response > Save to a file
+```
+
+### Browser Example
+
+Simply navigate to the URL in your browser:
+```
+http://localhost:5000/api/invoices/699456682ce7e48234def28b/download-pdf
+```
+
+The PDF will automatically download with the filename `Invoice-{InvoiceNumber}.pdf`
+
+### Testing Steps
+
+1. Get invoice details to verify it exists: `GET /api/invoices/{INVOICE_ID}`
+2. Copy the invoice ID from the response
+3. Open browser or use cURL to download PDF
+4. Verify PDF contains:
+   - Invoice header with number and status
+   - Customer details
+   - All line items with correct calculations
+   - Payment summary showing totals
+   - Payment history (if any payments exist)
+   - Notes section (if notes exist)
+5. Check PDF is properly formatted and readable
+
+### Frontend Integration
+
+The invoice detail page includes a "Download PDF" button that:
+- Fetches the PDF from the API
+- Shows loading state during generation
+- Automatically downloads the file with proper filename
+- Handles errors gracefully with user-friendly messages
+
+### Testing Different Invoice Types
+
+**Scenario 1: Partially Paid Invoice**
+- Use INV-2026-001 (has partial payments)
+- PDF should show payment history and remaining balance in red/orange
+
+**Scenario 2: Fully Paid Invoice**
+- Use INV-2026-002 (fully paid)
+- PDF should show balance due as ₹0 in green with "Fully Paid" indicator
+
+**Scenario 3: Unpaid Invoice**
+- Use INV-2026-003 (no payments)
+- PDF should show full balance due with no payment history section
+
+**Scenario 4: Large Invoice with Multiple Line Items**
+- Use INV-2026-004 or INV-2026-007
+- PDF should handle multiple pages if needed
+- All line items should be properly formatted
+
+**Scenario 5: Archived Invoice**
+- Use INV-2025-099 (archived)
+- PDF should still generate successfully
+- May show archived status in the document
+
+---
+
 ## Complete Testing Workflow
 
 ### Step 1: Setup
@@ -632,6 +772,18 @@ curl -X POST http://localhost:5000/api/invoices/$INVOICE_ID/archive | jq
 
 ```bash
 curl -X POST http://localhost:5000/api/invoices/$INVOICE_ID/restore | jq
+```
+
+### Step 9: Download Invoice as PDF
+
+```bash
+# Download PDF
+curl -X GET http://localhost:5000/api/invoices/$INVOICE_ID/download-pdf \
+  --output "Invoice-Test.pdf"
+
+# Open the downloaded PDF to verify contents
+# Linux: xdg-open Invoice-Test.pdf
+# macOS: open Invoice-Test.pdf
 ```
 
 ---
@@ -757,7 +909,14 @@ Import this collection to test all endpoints:
       }
     },
     {
-      "name": "Archive Invoice",
+     ,
+    {
+      "name": "Download Invoice PDF",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/invoices/{{invoiceId}}/download-pdf"
+      }
+    } "name": "Archive Invoice",
       "request": {
         "method": "POST",
         "url": "{{baseUrl}}/invoices/{{invoiceId}}/archive"
@@ -804,6 +963,11 @@ This prevents scenarios where payment is recorded but invoice is not updated.
 ---
 
 ## Version History
+- **Added PDF generation and download functionality**
+  - Professional invoice PDF with proper formatting
+  - Includes line items, payment history, and totals
+  - Automatic file naming based on invoice number
+  - Download button on invoice detail page
 
 ### Version 2.0 (February 2026)
 - Updated to Next.js 16

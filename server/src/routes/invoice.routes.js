@@ -5,7 +5,9 @@ const paymentController = require('../controllers/payment.controller');
 const { validate, paymentSchema } = require('../middleware/validator');
 
 // Invoice routes
+router.get('/', invoiceController.getAllInvoices);
 router.get('/:id', invoiceController.getInvoice);
+router.get('/:id/download-pdf', invoiceController.downloadInvoicePDF);
 router.post('/:id/archive', invoiceController.archiveInvoice);
 router.post('/:id/restore', invoiceController.restoreInvoice);
 
