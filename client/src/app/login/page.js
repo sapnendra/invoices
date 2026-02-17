@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import MeruLogo from '@/components/MeruLogo';
 
 export default function LoginPage() {
   const searchParams = useSearchParams();
@@ -26,8 +25,10 @@ export default function LoginPage() {
         <div className="bg-white rounded-2xl shadow-xl p-8 space-y-8">
           {/* Header */}
           <div className="text-center space-y-2">
-            <div className="w-32 h-20 mx-auto flex items-center justify-center">
-              <MeruLogo className="w-full h-full" showText={true} />
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl mx-auto flex items-center justify-center">
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
             </div>
             <h1 className="text-3xl font-bold text-gray-900">Invoice Manager</h1>
             <p className="text-gray-600">Sign in to manage your invoices</p>
@@ -45,7 +46,7 @@ export default function LoginPage() {
           {/* Google Sign In Button */}
           <button
             onClick={handleGoogleLogin}
-            className="w-full flex items-center justify-center gap-3 bg-white border-2 border-gray-300 text-gray-700 rounded-lg px-6 py-3 font-semibold hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 shadow-sm hover:shadow"
+            className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-700 rounded-lg px-6 py-3 font-semibold hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 shadow-sm hover:shadow"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>

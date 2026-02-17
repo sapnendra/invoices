@@ -2,13 +2,15 @@ import './globals.css'
 import Providers from '@/components/Providers'
 
 export const metadata = {
-  title: 'Invoice Manager - Meru Technosoft',
-  description: 'Invoice management and payment processing powered by Meru Technosoft',
+  title: 'Invoices - Meru Technosoft',
+  description: 'Invoice management and payment processing with Google authentication',
   icons: {
-    icon: '/favicon.svg',
-    shortcut: '/favicon.svg',
-    apple: '/favicon.svg',
+    icon: '/icon.svg',
+    apple: '/apple-touch-icon.svg',
   },
+  themeColor: '#3B82F6',
+  manifest: '/site.webmanifest',
+  viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
 }
 
 export default function RootLayout({ children }) {

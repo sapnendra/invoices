@@ -6,7 +6,6 @@ import InvoiceCard from '@/components/InvoiceCard';
 import InvoicesGridSkeleton from '@/components/InvoicesGridSkeleton';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuth } from '@/context/AuthContext';
-import MeruLogo, { MeruLogoIcon } from '@/components/MeruLogo';
 
 function InvoicesGrid({ invoices, loading }) {
   if (loading) {
@@ -83,13 +82,12 @@ function HomePage() {
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-10">
-              <MeruLogoIcon className="w-full h-full" />
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
             </div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900 leading-tight">Invoice Manager</h1>
-              <p className="text-xs text-gray-500">Powered by Meru Technosoft</p>
-            </div>
+            <h1 className="text:lg sm:text-md font-bold text-gray-900 leading-none sm:leading-tight">Invoice <br /> Manager</h1>
           </div>
           
           <div className="flex items-center gap-4">
@@ -108,7 +106,7 @@ function HomePage() {
                 </div>
                 <button
                   onClick={logout}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors duration-200 font-medium text-sm"
+                  className="flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-200 text-red-700 rounded-lg transition-colors duration-200 font-medium text-sm"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -137,9 +135,9 @@ function HomePage() {
       <div className="py-8">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-12">
-            <div className="w-64 h-20 mx-auto mb-4 flex items-center justify-center">
-              <MeruLogo className="w-full h-full" showText={true} />
-            </div>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Meru Technosoft Private Limited
+            </h2>
             <p className="text-gray-600 mb-2">
               Welcome to the <strong><i>Invoice Details Module</i></strong>
             </p>
