@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-export default function LoginPage() {
+function ErrorMessage() {
   const searchParams = useSearchParams();
   const error = searchParams.get('error');
 
@@ -13,6 +13,18 @@ export default function LoginPage() {
     }
   }, [error]);
 
+  if (!error) return null;
+
+  return (
+    <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+      <p className="text-sm text-red-800 text-center">
+        Authentication failed. Please try again.
+      </p>
+    </div>
+  );
+}
+
+function LoginContent() {
   const handleGoogleLogin = () => {
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
     window.location.href = `${API_URL}/api/auth/google`;
@@ -35,13 +47,9 @@ export default function LoginPage() {
           </div>
 
           {/* Error Message */}
-          {error && (
-            <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-800 text-center">
-                Authentication failed. Please try again.
-              </p>
-            </div>
-          )}
+          <Suspense fallback={null}>
+            <ErrorMessage />
+          </Suspense>
 
           {/* Google Sign In Button */}
           <button
@@ -101,4 +109,8 @@ export default function LoginPage() {
       </div>
     </div>
   );
+}
+
+export default function LoginPage() {
+  return <LoginContent />;
 }
