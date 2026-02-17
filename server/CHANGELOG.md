@@ -45,6 +45,7 @@ GET /api/invoices/:id
       "invoiceNumber": "INV-2026-001",
       "customerName": "Acme Enterprise",
       "customerEmail": "contact@acme-enterprise.com",
+      "currency": "INR",
       "issueDate": "2026-01-15T00:00:00.000Z",
       "dueDate": "2026-02-14T00:00:00.000Z",
       "status": "DRAFT",
@@ -198,6 +199,7 @@ POST /api/invoices/:id/payments
       "_id": "699456682ce7e48234def28b",
       "invoiceNumber": "INV-2026-001",
       "status": "DRAFT",
+      "currency": "INR",
       "total": 85000,
       "amountPaid": 60000,
       "balanceDue": 25000
@@ -224,11 +226,13 @@ POST /api/invoices/:id/payments
 {
   "success": false,
   "error": {
-    "message": "Payment amount (₹30,000) cannot exceed balance due (₹25,000)",
+    "message": "Payment amount cannot exceed balance due",
     "statusCode": 400
   }
 }
 ```
+
+**Note:** Error messages display amounts with the invoice's currency symbol (e.g., ₹30,000 for INR, $300 for USD, €250 for EUR).
 
 **Future Date (400)**
 ```json
@@ -323,7 +327,7 @@ Body (raw JSON):
 
 ### Testing Scenarios
 
-**Scenario 1: Partial Payment**
+**Scenario 1: Partial Payment (INR)**
 ```json
 {
   "amount": 10000,
@@ -332,16 +336,28 @@ Body (raw JSON):
 ```
 Expected: Payment accepted, status remains "DRAFT"
 
-**Scenario 2: Full Payment**
+**Scenario 2: Full Payment (USD)**
+For invoice with $90 balance:
 ```json
 {
-  "amount": 50000,
+  "amount": 90,
   "paymentDate": "2026-02-15"
 }
 ```
 Expected: Payment accepted, status changes to "PAID"
 
+**Scenario 3: Payment in EUR**
+For invoice with €420 balance:
+```json
+{
+  "amount": 210,
+  "paymentDate": "2026-02-15"
+}
+```
+Expected: Payment accepted, €210 remaining balance
+
 **Scenario 3: Overpayment (Should Fail)**
+For any currency, attempting to pay more than balance:
 ```json
 {
   "amount": 100000,
@@ -590,11 +606,13 @@ Content-Disposition: attachment; filename="Invoice-INV-2026-001.pdf"
 The generated PDF includes:
 - **Professional Header:** Invoice number, dates, and status badge
 - **Customer Information:** Bill To and From details
+- **Currency Display:** All amounts shown in invoice's currency
 - **Line Items Table:** Itemized list with quantities, prices, and totals
 - **Payment Summary Box:** Total, Amount Paid, and Balance Due with color coding
 - **Payment History:** Chronological list of all payments made
 - **Notes Section:** Any additional notes from the invoice
 - **Professional Footer:** Thank you message and generation timestamp
+- **Multi-Currency Support:** Proper formatting for INR, USD, EUR, GBP, JPY, AUD
 
 ### Error Responses
 
@@ -674,27 +692,35 @@ The invoice detail page includes a "Download PDF" button that:
 
 ### Testing Different Invoice Types
 
-**Scenario 1: Partially Paid Invoice**
-- Use INV-2026-001 (has partial payments)
-- PDF should show payment history and remaining balance in red/orange
+**Scenario 1: INR Invoice (Partially Paid)**
+- Use INV-2026-001 (has partial payments in INR)
+- PDF should show amounts as Rs. 85,000, Rs. 35,000, etc.
+- Payment history and remaining balance in INR
 
-**Scenario 2: Fully Paid Invoice**
-- Use INV-2026-002 (fully paid)
-- PDF should show balance due as ₹0 in green with "Fully Paid" indicator
+**Scenario 2: USD Invoice (Fully Paid)**
+- Use INV-2026-002 (fully paid in USD)
+- PDF should show amounts as $ 1,500.00
+- Balance due as $0.00 in green with "Fully Paid" indicator
 
-**Scenario 3: Unpaid Invoice**
-- Use INV-2026-003 (no payments)
-- PDF should show full balance due with no payment history section
+**Scenario 3: EUR Invoice (Unpaid)**
+- Use INV-2026-003 (no payments in EUR)
+- PDF should show amounts as EUR 420.00
+- No payment history section, full balance due
 
-**Scenario 4: Large Invoice with Multiple Line Items**
-- Use INV-2026-004 or INV-2026-007
-- PDF should handle multiple pages if needed
-- All line items should be properly formatted
+**Scenario 4: JPY Invoice (No Decimals)**
+- Use INV-2026-008 (Japanese Yen)
+- PDF should show amounts as JPY 142,500 (no decimal places)
+- Proper Japanese number formatting
 
-**Scenario 5: Archived Invoice**
-- Use INV-2025-099 (archived)
-- PDF should still generate successfully
-- May show archived status in the document
+**Scenario 5: GBP Invoice**
+- Use INV-2026-005 (British Pounds)
+- PDF should show amounts with £ symbol
+- Proper UK locale formatting
+
+**Scenario 6: AUD Invoice (Archived)**
+- Use INV-2025-099 (Australian Dollars, archived)
+- PDF should show amounts as AUD 1,170.00
+- Archived status should be visible
 
 ---
 
@@ -839,27 +865,57 @@ All endpoints follow a consistent error response format:
 
 ## Sample Test Data
 
-After running `npm run seed`, you'll have 12 invoices with various statuses:
+After running `npm run seed`, you'll have 12 invoices with various currencies:
+
+### Multi-Currency Invoice Set
+- **INR (Indian Rupee):** INV-2026-001, INV-2026-004, INV-2026-007, INV-2026-010
+  - Good for: Testing rupee symbol (₹), Indian number formatting
+- **USD (US Dollar):** INV-2026-002, INV-2026-006, INV-2026-012
+  - Good for: Testing dollar symbol ($), US formatting
+- **EUR (Euro):** INV-2026-003, INV-2026-011
+  - Good for: Testing euro symbol (€), European formatting
+- **GBP (British Pound):** INV-2026-005
+  - Good for: Testing pound symbol (£), UK formatting
+- **JPY (Japanese Yen):** INV-2026-008
+  - Good for: Testing yen symbol (¥), no decimal places
+- **AUD (Australian Dollar):** INV-2025-099 (Archived)
+  - Good for: Testing Australian dollar (A$), archived status
 
 ### Invoice for Partial Payment Testing
 - **Invoice Number:** INV-2026-001
+- **Currency:** INR
 - **Balance Due:** ₹50,000
-- **Good for:** Testing partial payments
+- **Good for:** Testing partial payments in rupees
 
 ### Invoice for Overpayment Testing
 - **Invoice Number:** INV-2026-003
-- **Balance Due:** ₹45,000
+- **Currency:** EUR
+- **Balance Due:** €420
 - **Good for:** Testing overpayment validation
 
-### Fully Paid Invoice
+### Fully Paid Invoice (USD)
 - **Invoice Number:** INV-2026-002
-- **Balance Due:** ₹0
+- **Currency:** USD
+- **Balance Due:** $0
 - **Good for:** Testing payment addition failure
+
+### Small Currency Amount Invoice (GBP)
+- **Invoice Number:** INV-2026-005
+- **Currency:** GBP
+- **Balance Due:** £0
+- **Good for:** Testing British Pound formatting
+
+### No Decimal Currency (JPY)
+- **Invoice Number:** INV-2026-008
+- **Currency:** JPY
+- **Total:** ¥142,500
+- **Good for:** Testing Yen without decimal places
 
 ### Archived Invoice
 - **Invoice Number:** INV-2025-099
+- **Currency:** AUD
 - **Status:** PAID (Archived)
-- **Good for:** Testing archive/restore operations
+- **Good for:** Testing archive/restore operations and Australian Dollar
 
 ---
 
@@ -951,25 +1007,40 @@ This prevents scenarios where payment is recorded but invoice is not updated.
 
 ## Notes for Developers
 
-- All monetary amounts are in **Indian Rupees (₹)**
+- All monetary amounts support **6 currencies:** INR, USD, EUR, GBP, JPY, AUD
+- **Currency field** is required in Invoice model (defaults to INR)
+- **JPY (Japanese Yen)** has no decimal places
+- All other currencies use 2 decimal places
+- Currency symbols: ₹ (INR), $ (USD), € (EUR), £ (GBP), ¥ (JPY), A$ (AUD)
+- **Locale-aware formatting:** Each currency uses its appropriate locale
 - All dates are stored in **ISO 8601 format**
 - Invoice IDs are **MongoDB ObjectIds** (24-character hexadecimal strings)
 - API uses **RESTful conventions**
 - All responses include `success` boolean field
-- Error messages include **rupee symbol (₹)** where applicable
+- Error messages include **currency symbols** where applicable
 - Server runs on **port 5000** by default
 - Frontend runs on **port 3000** (CORS enabled)
 
 ---
 
 ## Version History
-- **Added PDF generation and download functionality**
+
+### Version 3.0 (February 2026)
+- **Multi-Currency Support:** 6 currencies (INR, USD, EUR, GBP, JPY, AUD)
+- Currency field added to Invoice model
+- Currency-aware API responses
+- Locale-specific number formatting
+- PDF generation with currency-specific symbols
+- Updated validation to handle different currencies
+- JPY special handling (no decimal places)
+- Seed data with diverse currencies
+
+### Version 2.0 (February 2026)
+- Added PDF generation and download functionality
   - Professional invoice PDF with proper formatting
   - Includes line items, payment history, and totals
   - Automatic file naming based on invoice number
   - Download button on invoice detail page
-
-### Version 2.0 (February 2026)
 - Updated to Next.js 16
 - Currency changed to Indian Rupees (₹)
 - Enhanced validation messages with currency symbols
@@ -978,4 +1049,4 @@ This prevents scenarios where payment is recorded but invoice is not updated.
 
 ---
 
-**Last Updated:** February 17, 2026
+**Last Updated:** February 18, 2026

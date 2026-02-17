@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { INVOICE_STATUS } = require('../config/constants');
+const { INVOICE_STATUS, CURRENCIES, DEFAULT_CURRENCY } = require('../config/constants');
 
 const invoiceSchema = new mongoose.Schema({
   invoiceNumber: {
@@ -13,6 +13,12 @@ const invoiceSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Customer name is required'],
     trim: true,
+  },
+  currency: {
+    type: String,
+    enum: Object.keys(CURRENCIES),
+    default: DEFAULT_CURRENCY,
+    required: true,
   },
   issueDate: {
     type: Date,

@@ -8,7 +8,7 @@ import AddPaymentModal from './AddPaymentModal';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { addPayment } from '@/lib/api';
 
-export default function PaymentsSection({ initialPayments, invoiceId, balanceDue, isArchived }) {
+export default function PaymentsSection({ initialPayments, invoiceId, balanceDue, isArchived, currency = 'INR' }) {
   const [payments, setPayments] = useState(initialPayments || []);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -79,7 +79,7 @@ export default function PaymentsSection({ initialPayments, invoiceId, balanceDue
             >
               <div>
                 <p className="font-semibold text-gray-900">
-                  {formatCurrency(payment.amount)}
+                  {formatCurrency(payment.amount, currency)}
                 </p>
                 <p className="text-sm text-gray-500">
                   {formatDate(payment.paymentDate)}
@@ -107,6 +107,7 @@ export default function PaymentsSection({ initialPayments, invoiceId, balanceDue
         }}
         onSubmit={handleAddPayment}
         balanceDue={balanceDue}
+        currency={currency}
         isSubmitting={isSubmitting}
         error={error}
       />

@@ -1,7 +1,7 @@
 import Card from '@/components/ui/Card';
 import { formatCurrency } from '@/lib/utils';
 
-export default function LineItemsTable({ lineItems }) {
+export default function LineItemsTable({ lineItems, currency = 'INR' }) {
   if (!lineItems || lineItems.length === 0) {
     return (
       <Card>
@@ -46,10 +46,10 @@ export default function LineItemsTable({ lineItems }) {
                   {item.quantity}
                 </td>
                 <td className="py-4 px-4 text-sm text-gray-600 text-right">
-                  {formatCurrency(item.unitPrice)}
+                  {formatCurrency(item.unitPrice, currency)}
                 </td>
                 <td className="py-4 px-4 text-sm font-semibold text-gray-900 text-right">
-                  {formatCurrency(item.lineTotal)}
+                  {formatCurrency(item.lineTotal, currency)}
                 </td>
               </tr>
             ))}

@@ -6,6 +6,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 export async function getInvoiceById(id) {
   const response = await fetch(`${API_BASE_URL}/api/invoices/${id}`, {
     cache: 'no-store',
+    credentials: 'include', // Include authentication cookies
   });
 
   if (!response.ok) {
@@ -25,6 +26,7 @@ export async function addPayment(invoiceId, paymentData) {
     headers: {
       'Content-Type': 'application/json',
     },
+    credentials: 'include', // Include authentication cookies
     body: JSON.stringify(paymentData),
   });
 
@@ -42,6 +44,7 @@ export async function addPayment(invoiceId, paymentData) {
 export async function archiveInvoice(invoiceId) {
   const response = await fetch(`${API_BASE_URL}/api/invoices/${invoiceId}/archive`, {
     method: 'POST',
+    credentials: 'include', // Include authentication cookies
   });
 
   if (!response.ok) {
@@ -58,6 +61,7 @@ export async function archiveInvoice(invoiceId) {
 export async function restoreInvoice(invoiceId) {
   const response = await fetch(`${API_BASE_URL}/api/invoices/${invoiceId}/restore`, {
     method: 'POST',
+    credentials: 'include', // Include authentication cookies
   });
 
   if (!response.ok) {

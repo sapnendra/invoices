@@ -27,7 +27,7 @@ class InvoicePDFService {
     this.addCustomerDetails(doc, invoice);
     
     // Line Items Table
-    this.addLineItemsTable(doc, lineItems, invoice.total);
+    this.addLineItemsTable(doc, lineItems, invoice);
     
     // Payment Information
     this.addPaymentInformation(doc, invoice, payments);
@@ -108,7 +108,7 @@ class InvoicePDFService {
       .text('invoice@merufintech.com', 350, startY + 35);
   }
 
-  addLineItemsTable(doc, lineItems, total) {
+  addLineItemsTable(doc, lineItems, invoice) {
     const tableTop = 250;
     const itemCodeX = 50;
     const descriptionX = 100;
@@ -149,8 +149,8 @@ class InvoicePDFService {
         .text(index + 1, itemCodeX + 5, currentY)
         .text(item.description, descriptionX, currentY, { width: 200, lineBreak: false })
         .text(item.quantity.toString(), quantityX, currentY)
-        .text(formatCurrency(item.unitPrice), unitPriceX, currentY)
-        .text(formatCurrency(item.lineTotal), lineTotalX, currentY);
+        .text(formatCurrency(item.unitPrice, invoice.currency, true), unitPriceX, currentY)
+        .text(formatCurrency(item.lineTotal, invoice.currency, true), lineTotalX, currentY);
 
       // Horizontal line
       doc
@@ -172,7 +172,7 @@ class InvoicePDFService {
 
     doc
       .text('Total Amount:', 380, currentY)
-      .text(formatCurrency(total), 470, currentY);
+      .text(formatCurrency(invoice.total, invoice.currency, true), 470, currentY);
   }
 
   addPaymentInformation(doc, invoice, payments) {
@@ -192,14 +192,14 @@ class InvoicePDFService {
     doc
       .fontSize(9)
       .font('Helvetica')
-      .text(`Total Amount: ${formatCurrency(invoice.total)}`, 60, currentY + 30)
-      .text(`Amount Paid: ${formatCurrency(invoice.amountPaid)}`, 60, currentY + 45);
+      .text(`Total Amount: ${formatCurrency(invoice.total, invoice.currency, true)}`, 60, currentY + 30)
+      .text(`Amount Paid: ${formatCurrency(invoice.amountPaid, invoice.currency, true)}`, 60, currentY + 45);
 
     const balanceColor = invoice.balanceDue === 0 ? '#22c55e' : '#ef4444';
     doc
       .font('Helvetica-Bold')
       .fillColor(balanceColor)
-      .text(`Balance Due: ${formatCurrency(invoice.balanceDue)}`, 60, currentY + 60);
+      .text(`Balance Due: ${formatCurrency(invoice.balanceDue, invoice.currency, true)}`, 60, currentY + 60);
 
     doc.fillColor('#000000');
 
@@ -219,7 +219,7 @@ class InvoicePDFService {
           .fontSize(9)
           .font('Helvetica')
           .text(`• ${formatDate(payment.paymentDate)}`, 60, currentY)
-          .text(formatCurrency(payment.amount), 200, currentY);
+          .text(formatCurrency(payment.amount, invoice.currency, true), 200, currentY);
 
         currentY += 18;
       });

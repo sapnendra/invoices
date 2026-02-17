@@ -1,67 +1,43 @@
-const INVOICE_STATUS = {
-  DRAFT: 'DRAFT',
-  PAID: 'PAID',
-};
-
-const HTTP_STATUS = {
-  OK: 200,
-  CREATED: 201,
-  BAD_REQUEST: 400,
-  NOT_FOUND: 404,
-  UNPROCESSABLE_ENTITY: 422,
-  INTERNAL_SERVER_ERROR: 500,
-};
-
-const CURRENCIES = {
+/**
+ * Currency configurations
+ */
+export const CURRENCIES = {
   INR: {
     code: 'INR',
     symbol: '₹',
-    pdfSymbol: 'Rs.',
     name: 'Indian Rupee',
     locale: 'en-IN',
   },
   USD: {
     code: 'USD',
     symbol: '$',
-    pdfSymbol: '$',
     name: 'US Dollar',
     locale: 'en-US',
   },
   EUR: {
     code: 'EUR',
     symbol: '€',
-    pdfSymbol: 'EUR',
     name: 'Euro',
     locale: 'de-DE',
   },
   GBP: {
     code: 'GBP',
     symbol: '£',
-    pdfSymbol: '£',
     name: 'British Pound',
     locale: 'en-GB',
   },
   JPY: {
     code: 'JPY',
     symbol: '¥',
-    pdfSymbol: 'JPY',
     name: 'Japanese Yen',
     locale: 'ja-JP',
   },
   AUD: {
     code: 'AUD',
     symbol: 'A$',
-    pdfSymbol: 'AUD',
     name: 'Australian Dollar',
     locale: 'en-AU',
   },
 };
 
-const DEFAULT_CURRENCY = 'INR';
-
-module.exports = {
-  INVOICE_STATUS,
-  HTTP_STATUS,
-  CURRENCIES,
-  DEFAULT_CURRENCY,
-};
+export const DEFAULT_CURRENCY = 'INR';

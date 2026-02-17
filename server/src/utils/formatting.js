@@ -1,13 +1,21 @@
+const { CURRENCIES, DEFAULT_CURRENCY } = require('../config/constants');
+
 /**
- * Format number as Indian Rupee currency
- * Using "Rs." prefix instead of ₹ symbol for PDF compatibility
+ * Format number as currency based on currency code
+ * @param {number} amount - The amount to format
+ * @param {string} currencyCode - Currency code (INR, USD, EUR, etc.)
+ * @param {boolean} forPDF - Use PDF-safe symbol instead of unicode
  */
-const formatCurrency = (amount) => {
-  const formattedAmount = amount.toLocaleString('en-IN', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+const formatCurrency = (amount, currencyCode = DEFAULT_CURRENCY, forPDF = false) => {
+  const currency = CURRENCIES[currencyCode] || CURRENCIES[DEFAULT_CURRENCY];
+  
+  const formattedAmount = amount.toLocaleString(currency.locale, {
+    minimumFractionDigits: currencyCode === 'JPY' ? 0 : 2,
+    maximumFractionDigits: currencyCode === 'JPY' ? 0 : 2,
   });
-  return `Rs. ${formattedAmount}`;
+  
+  const symbol = forPDF ? currency.pdfSymbol : currency.symbol;
+  return `${symbol} ${formattedAmount}`;
 };
 
 /**

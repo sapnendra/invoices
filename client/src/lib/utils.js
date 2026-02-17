@@ -1,11 +1,26 @@
+import { CURRENCIES, DEFAULT_CURRENCY } from './currencies';
+
 /**
- * Format currency for display
+ * Format currency for display with multi-currency support
+ * @param {number} amount - The amount to format
+ * @param {string} currencyCode - Currency code (INR, USD, EUR, etc.)
  */
-export function formatCurrency(amount) {
+export function formatCurrency(amount, currencyCode = DEFAULT_CURRENCY) {
   if (typeof amount !== 'number') {
     amount = parseFloat(amount) || 0;
   }
-  return `₹${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
+  
+  const currency = CURRENCIES[currencyCode] || CURRENCIES[DEFAULT_CURRENCY];
+  
+  // JPY doesn't use decimal places
+  const decimals = currencyCode === 'JPY' ? 0 : 2;
+  
+  const formattedAmount = amount.toLocaleString(currency.locale, {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
+  
+  return `${currency.symbol} ${formattedAmount}`;
 }
 
 /**

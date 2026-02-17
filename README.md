@@ -8,7 +8,8 @@ A full-stack MERN application for managing invoices and processing payments with
 - **Frontend:** Next.js 16 (with App Router), React, Tailwind CSS
 - **Validation:** Joi (backend)
 - **Architecture:** Service Layer Pattern, Transaction-based Payments
-- **Currency:** Indian Rupees (₹)
+- **Currency:** Multi-Currency Support (INR, USD, EUR, GBP, JPY, AUD)
+- **PDF Generation:** PDFKit for professional invoice PDFs
 
 ## Project Structure
 
@@ -43,6 +44,8 @@ invoice-details-page/
 - Archive/restore invoices
 - MongoDB transactions for data integrity
 - Generate and download professional PDF invoices
+- **Multi-Currency Support** (INR, USD, EUR, GBP, JPY, AUD)
+- Currency-aware formatting and calculations
 
 ### UI Features
 - Fully responsive design
@@ -50,7 +53,8 @@ invoice-details-page/
 - Optimistic UI updates
 - Loading states and error handling
 - Payment progress visualization
-- Indian Rupees (₹) with proper formatting
+- Multi-currency display with proper locale formatting
+- Currency-specific symbols and number formats
 - Server-side rendering for performance
 
 ## Prerequisites
@@ -184,62 +188,64 @@ The seed script creates 12 diverse sample invoices with various payment scenario
 
 ### Invoice Overview
 
-**1. INV-2026-001** - Acme Enterprise
+**1. INV-2026-001** - Acme Enterprise (INR)
 - Status: DRAFT (partially paid)
 - Total: ₹85,000
 - Amount Paid: ₹35,000
 - Balance Due: ₹50,000
 
-**2. INV-2026-002** - Tech Solutions Inc
+**2. INV-2026-002** - Tech Solutions Inc (USD)
 - Status: PAID (fully paid)
-- Total: ₹1,25,000
-- Balance: ₹0
+- Total: $1,500
+- Balance: $0
 
-**3. INV-2026-003** - Global Innovations Ltd
+**3. INV-2026-003** - Global Innovations Ltd (EUR)
 - Status: DRAFT (no payment yet)
-- Total: ₹45,000
-- Balance Due: ₹45,000
+- Total: €420
+- Balance Due: €420
 
-**4. INV-2026-004** - Quantum Systems Pvt Ltd
+**4. INV-2026-004** - Quantum Systems Pvt Ltd (INR)
 - Status: DRAFT (large invoice, partial payment)
 - Total: ₹2,50,000
 - Balance Due: ₹1,50,000
 
-**5. INV-2026-005** - Startup Hub India
+**5. INV-2026-005** - Startup Hub India (GBP)
 - Status: PAID
-- Total: ₹18,500
-- Balance: ₹0
+- Total: £185
+- Balance: £0
 
-**6. INV-2026-006** - Digital Marketing Pro
+**6. INV-2026-006** - Digital Marketing Pro (USD)
 - Status: DRAFT (almost paid)
-- Total: ₹67,500
-- Balance Due: ₹7,500
+- Total: $810
+- Balance Due: $90
 
-**7. INV-2026-007** - Enterprise Corp
+**7. INV-2026-007** - Enterprise Corp (INR)
 - Status: DRAFT (large project)
 - Total: ₹3,50,000
 - Balance Due: ₹1,75,000
 
-**8. INV-2026-008** - Consulting Group LLC
+**8. INV-2026-008** - Consulting Group LLC (JPY)
 - Status: PAID
-- Total: ₹95,000
-- Balance: ₹0
+- Total: ¥142,500
+- Balance: ¥0
 
-**9. INV-2025-099** - Legacy Systems Inc
+**9. INV-2025-099** - Legacy Systems Inc (AUD)
 - Status: PAID (ARCHIVED)
-- Total: ₹78,000
-- Balance: ₹0
+- Total: A$1,170
+- Balance: A$0
 
 **10-12.** Three additional invoices with various statuses
 
 ### Seed Data Features
 - Multiple realistic line items per invoice
 - Various payment histories (single, installments, none)
-- Different invoice sizes (₹18,500 to ₹3,50,000)
+- Different invoice sizes across various currencies
+- **Multi-currency data:** INR, USD, EUR, GBP, JPY, AUD
+- Currency-appropriate amounts (e.g., $1,500 vs ₹1,50,000)
 - One archived invoice for testing
-- All amounts in Indian Rupees (₹)
+- Locale-specific number formatting
 
-After seeding, the console displays all Invoice IDs for testing.
+After seeding, the console displays all Invoice IDs with their currencies for testing.
 
 ## API Endpoints
 
@@ -355,7 +361,8 @@ The UI is inspired by modern invoice management systems with:
 - Professional typography hierarchy
 - Responsive grid layout (mobile, tablet, desktop)
 - Hover states and smooth transitions
-- Indian Rupee (₹) formatting with proper comma separators
+- Multi-currency formatting with locale-aware separators
+- Currency-specific symbols (₹, $, €, £, ¥, A$)
 - Visual payment progress indicators
 
 ## Architecture Highlights
@@ -448,6 +455,16 @@ Future enhancements you can add:
 
 ## Recent Updates
 
+### Version 3.0 (February 2026)
+- **Multi-Currency Support:** Added support for 6 currencies (INR, USD, EUR, GBP, JPY, AUD)
+- Currency-aware formatting with locale-specific number formats
+- Currency field in Invoice model with enum validation
+- Updated PDF generation to use invoice-specific currency
+- Frontend components dynamically display currency symbols
+- Currency-specific payment input with appropriate symbols
+- Seed data with diverse currencies and realistic amounts
+- Proper handling of JPY (no decimal places)
+
 ### Version 2.0 (February 2026)
 - Updated to Next.js 16 (with async params support)
 - Currency changed from USD ($) to Indian Rupees (₹)
@@ -457,7 +474,7 @@ Future enhancements you can add:
 - Improved currency formatting for Indian numbering system
 - Enhanced homepage with invoice dashboard grid
 - Added quick payment buttons (25%, 50%, Full)
-- Better validation error messages with currency symbols
+- PDF generation and download functionality
 
 ## Contributing
 
@@ -496,8 +513,9 @@ Open your browser and navigate to `http://localhost:3000`
 
 ### Key Testing Scenarios
 
-1. **Partial Payment:** INV-2026-001 (₹50,000 balance)
-2. **Fully Paid:** INV-2026-002 (₹0 balance)
-3. **No Payment:** INV-2026-003 (₹45,000 balance)
-4. **Large Invoice:** INV-2026-004 (₹2,50,000 total)
-5. **Archived:** INV-2025-099 (cannot modify)
+1. **Partial Payment (INR):** INV-2026-001 (₹50,000 balance)
+2. **Fully Paid (USD):** INV-2026-002 ($0 balance)
+3. **No Payment (EUR):** INV-2026-003 (€420 balance)
+4. **Large Invoice (INR):** INV-2026-004 (₹2,50,000 total)
+5. **Multi-Currency:** Test USD, EUR, GBP, JPY, AUD invoices
+6. **Archived (AUD):** INV-2025-099 (cannot modify)

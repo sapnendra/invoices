@@ -4,12 +4,14 @@ import { useState } from 'react';
 import Modal from '@/components/ui/Modal';
 import Button from '@/components/ui/Button';
 import { formatCurrency, formatDateForInput } from '@/lib/utils';
+import { CURRENCIES, DEFAULT_CURRENCY } from '@/lib/currencies';
 
 export default function AddPaymentModal({ 
   isOpen, 
   onClose, 
   onSubmit, 
   balanceDue,
+  currency = DEFAULT_CURRENCY,
   isSubmitting,
   error 
 }) {
@@ -35,7 +37,7 @@ export default function AddPaymentModal({
     }
 
     if (amountNum > balanceDue) {
-      setValidationError(`Amount cannot exceed balance due (${formatCurrency(balanceDue)})`);
+      setValidationError(`Amount cannot exceed balance due (${formatCurrency(balanceDue, currency)})`);
       return;
     }
 
@@ -82,7 +84,7 @@ export default function AddPaymentModal({
           {/* Balance Due Info */}
           <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
             <p className="text-sm text-blue-800">
-              <span className="font-medium">Balance Due:</span> {formatCurrency(balanceDue)}
+              <span className="font-medium">Balance Due:</span> {formatCurrency(balanceDue, currency)}
             </p>
           </div>
 
@@ -93,7 +95,7 @@ export default function AddPaymentModal({
             </label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-                ₹
+                {CURRENCIES[currency]?.symbol || '₹'}
               </span>
               <input
                 type="number"

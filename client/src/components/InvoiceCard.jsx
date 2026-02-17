@@ -22,7 +22,7 @@ export default function InvoiceCard({ invoice }) {
     }
     return (
       <p className="text-orange-600 font-medium">
-        Balance: {formatCurrency(invoice.balanceDue)}
+        Balance: {formatCurrency(invoice.balanceDue, invoice.currency)}
       </p>
     );
   };
@@ -40,7 +40,7 @@ export default function InvoiceCard({ invoice }) {
       </div>
       <p className="text-sm text-gray-600 mb-2">{invoice.customerName}</p>
       <div className="text-xs text-gray-500">
-        <p>Total: {formatCurrency(invoice.total)}</p>
+        <p>Total: {formatCurrency(invoice.total, invoice.currency)}</p>
         {getBalanceText()}
       </div>
     </Link>

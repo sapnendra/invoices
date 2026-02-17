@@ -1,7 +1,7 @@
 import Card from '@/components/ui/Card';
 import { formatCurrency, calculatePercentagePaid } from '@/lib/utils';
 
-export default function TotalsSection({ total, amountPaid, balanceDue }) {
+export default function TotalsSection({ total, amountPaid, balanceDue, currency = 'INR' }) {
   const percentagePaid = calculatePercentagePaid(total, amountPaid);
 
   return (
@@ -13,7 +13,7 @@ export default function TotalsSection({ total, amountPaid, balanceDue }) {
         <div className="flex justify-between items-center pb-4 border-b border-gray-200">
           <span className="text-sm text-gray-600">Total</span>
           <span className="text-lg font-semibold text-gray-900">
-            {formatCurrency(total)}
+            {formatCurrency(total, currency)}
           </span>
         </div>
         
@@ -21,7 +21,7 @@ export default function TotalsSection({ total, amountPaid, balanceDue }) {
         <div className="flex justify-between items-center">
           <span className="text-sm text-gray-600">Amount Paid</span>
           <span className="text-sm font-medium text-green-600">
-            {formatCurrency(amountPaid)}
+            {formatCurrency(amountPaid, currency)}
           </span>
         </div>
         
@@ -29,7 +29,7 @@ export default function TotalsSection({ total, amountPaid, balanceDue }) {
         <div className="flex justify-between items-center pb-4 border-b border-gray-200">
           <span className="text-sm text-gray-600">Balance Due</span>
           <span className={`text-sm font-medium ${balanceDue > 0 ? 'text-orange-600' : 'text-green-600'}`}>
-            {formatCurrency(balanceDue)}
+            {formatCurrency(balanceDue, currency)}
           </span>
         </div>
         
