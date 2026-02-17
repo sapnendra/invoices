@@ -119,6 +119,9 @@ function InvoiceDetailsPageContent() {
           {/* Right Column - Totals Summary */}
           <div>
             <TotalsSection 
+              subtotal={invoice.subtotal || invoice.total}
+              taxRate={invoice.taxRate || 0}
+              taxAmount={invoice.taxAmount || 0}
               total={invoice.total}
               amountPaid={invoice.amountPaid}
               balanceDue={invoice.balanceDue}

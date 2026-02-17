@@ -41,3 +41,20 @@ export const CURRENCIES = {
 };
 
 export const DEFAULT_CURRENCY = 'INR';
+
+/**
+ * Get tax label for a given currency
+ * @param {string} currency - Currency code
+ * @returns {string} Tax label (e.g., "GST", "VAT", "Sales Tax")
+ */
+export function getTaxLabel(currency) {
+  const taxLabels = {
+    INR: 'GST',
+    USD: 'Sales Tax',
+    EUR: 'VAT',
+    GBP: 'VAT',
+    JPY: 'Consumption Tax',
+    AUD: 'GST',
+  };
+  return taxLabels[currency] || 'Tax';
+}

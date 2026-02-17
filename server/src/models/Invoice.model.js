@@ -35,6 +35,25 @@ const invoiceSchema = new mongoose.Schema({
     default: INVOICE_STATUS.DRAFT,
     index: true,
   },
+  subtotal: {
+    type: Number,
+    required: true,
+    default: 0,
+    min: [0, 'Subtotal cannot be negative'],
+  },
+  taxRate: {
+    type: Number,
+    required: true,
+    default: 0,
+    min: [0, 'Tax rate cannot be negative'],
+    max: [100, 'Tax rate cannot exceed 100%'],
+  },
+  taxAmount: {
+    type: Number,
+    required: true,
+    default: 0,
+    min: [0, 'Tax amount cannot be negative'],
+  },
   total: {
     type: Number,
     required: true,

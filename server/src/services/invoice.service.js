@@ -3,7 +3,7 @@ const Invoice = require('../models/Invoice.model');
 const InvoiceLine = require('../models/InvoiceLine.model');
 const Payment = require('../models/Payment.model');
 const { NotFoundError } = require('../utils/errors');
-const { calculateBalanceDue } = require('../utils/calculations');
+const { calculateBalanceDue, calculateTaxAmount, calculateInvoiceTotal } = require('../utils/calculations');
 
 class InvoiceService {
   /**
@@ -37,7 +37,9 @@ class InvoiceService {
     const payments = await Payment.find({ invoiceId }).sort({ paymentDate: -1 });
 
     // Recalculate totals for verification
-    const calculatedTotal = lineItems.reduce((sum, item) => sum + item.lineTotal, 0);
+    const calculatedSubtotal = lineItems.reduce((sum, item) => sum + item.lineTotal, 0);
+    const calculatedTaxAmount = calculateTaxAmount(calculatedSubtotal, invoice.taxRate);
+    const calculatedTotal = calculateInvoiceTotal(calculatedSubtotal, calculatedTaxAmount);
     const calculatedAmountPaid = payments.reduce((sum, payment) => sum + payment.amount, 0);
     const calculatedBalanceDue = calculateBalanceDue(calculatedTotal, calculatedAmountPaid);
 
@@ -46,6 +48,9 @@ class InvoiceService {
       lineItems: lineItems.map(item => item.toObject()),
       payments: payments.map(payment => payment.toObject()),
       calculated: {
+        subtotal: calculatedSubtotal,
+        taxRate: invoice.taxRate,
+        taxAmount: calculatedTaxAmount,
         total: calculatedTotal,
         amountPaid: calculatedAmountPaid,
         balanceDue: calculatedBalanceDue,

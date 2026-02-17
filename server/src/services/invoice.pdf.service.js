@@ -1,6 +1,21 @@
 const PDFDocument = require('pdfkit');
 const { formatCurrency, formatDate } = require('../utils/formatting');
 
+/**
+ * Get tax label based on currency
+ */
+function getTaxLabel(currency) {
+  const taxLabels = {
+    INR: 'GST',
+    USD: 'Sales Tax',
+    EUR: 'VAT',
+    GBP: 'VAT',
+    JPY: 'Consumption Tax',
+    AUD: 'GST',
+  };
+  return taxLabels[currency] || 'Tax';
+}
+
 class InvoicePDFService {
   /**
    * Generate PDF invoice
@@ -165,12 +180,41 @@ class InvoicePDFService {
 
     // Totals Section
     currentY += 10;
+    const totalsStartY = currentY;
 
     doc
       .fontSize(10)
-      .font('Helvetica-Bold');
+      .font('Helvetica');
 
+    // Subtotal (only show if tax exists)
+    if (invoice.taxRate && invoice.taxRate > 0) {
+      doc
+        .text('Subtotal:', 380, currentY)
+        .text(formatCurrency(invoice.subtotal || invoice.total, invoice.currency, true), 470, currentY);
+      
+      currentY += 20;
+
+      // Tax
+      const taxLabel = getTaxLabel(invoice.currency);
+      doc
+        .text(`${taxLabel} (${invoice.taxRate}%):`, 380, currentY)
+        .text(formatCurrency(invoice.taxAmount || 0, invoice.currency, true), 470, currentY);
+      
+      currentY += 25;
+
+      // Separator line
+      doc
+        .strokeColor('#cccccc')
+        .lineWidth(1)
+        .moveTo(380, currentY - 5)
+        .lineTo(550, currentY - 5)
+        .stroke();
+    }
+
+    // Total Amount (bold)
     doc
+      .fontSize(11)
+      .font('Helvetica-Bold')
       .text('Total Amount:', 380, currentY)
       .text(formatCurrency(invoice.total, invoice.currency, true), 470, currentY);
   }

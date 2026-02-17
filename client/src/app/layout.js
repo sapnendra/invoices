@@ -8,9 +8,14 @@ export const metadata = {
     icon: '/icon.svg',
     apple: '/apple-touch-icon.svg',
   },
-  themeColor: '#3B82F6',
   manifest: '/site.webmanifest',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
+}
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  themeColor: '#3B82F6',
 }
 
 export default function RootLayout({ children }) {

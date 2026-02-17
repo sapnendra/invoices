@@ -5,6 +5,8 @@ A full-stack MERN application for managing invoices and processing payments with
 ## Tech Stack
 
 - **Backend:** Node.js, Express, MongoDB, Mongoose
+- **Authentication:** Passport.js, Google OAuth 2.0, Session-based Auth
+- **Session Storage:** express-session with MongoDB (connect-mongo)
 - **Frontend:** Next.js 16 (with App Router), React, Tailwind CSS
 - **Validation:** Joi (backend)
 - **Architecture:** Service Layer Pattern, Transaction-based Payments
@@ -35,21 +37,34 @@ invoice-details-page/
 
 ## Features
 
+### Authentication & Security
+- **Google OAuth 2.0 Authentication** - Secure login with Google accounts
+- **Session-based Authentication** - Persistent sessions stored in MongoDB
+- **Protected Routes** - All invoice operations require authentication
+- **User Profile Management** - Display user name, email, and picture
+- **Automatic Session Expiry** - 7-day session duration
+- **Secure Cookie Management** - httpOnly, sameSite protection
+
 ### Core Functionality
 - View invoice details with line items
+- **Tax Calculations** with currency-specific rates (GST, VAT, Sales Tax)
+- Display tax breakdown (Subtotal, Tax, Total)
 - Display payment history
 - Add new payments with validation
 - Automatic balance calculation
 - Status management (DRAFT → PAID)
 - Archive/restore invoices
 - MongoDB transactions for data integrity
-- Generate and download professional PDF invoices
+- Generate and download professional PDF invoices with tax details
 - **Multi-Currency Support** (INR, USD, EUR, GBP, JPY, AUD)
 - Currency-aware formatting and calculations
 
 ### UI Features
 - Fully responsive design
-- Clean, modern interface
+- Clean, modern interface with authentication flow
+- Beautiful login page with Google OAuth button
+- User profile display in header
+- Logout functionality
 - Optimistic UI updates
 - Loading states and error handling
 - Payment progress visualization
@@ -91,12 +106,35 @@ npm install
 
 Create a `.env` file in the `server/` directory with the following settings:
 
-```
+```env
 NODE_ENV=development
 PORT=5000
 MONGODB_URI=mongodb://localhost:27017/invoice_db
 CLIENT_URL=http://localhost:3000
+
+# Session Secret (generate a random string)
+SESSION_SECRET=your-32-char-random-string-here
+
+# Google OAuth Credentials (get from Google Cloud Console)
+GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-client-secret
+GOOGLE_CALLBACK_URL=http://localhost:5000/api/auth/google/callback
 ```
+
+**Generate SESSION_SECRET:**
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+**Get Google OAuth Credentials:**
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select existing
+3. Navigate to **APIs & Services** → **Credentials**
+4. Create **OAuth client ID** → **Web application**
+5. Add authorized redirect URI: `http://localhost:5000/api/auth/google/callback`
+6. Copy Client ID and Client Secret to `.env`
+
+See [AUTHENTICATION_SETUP.md](./AUTHENTICATION_SETUP.md) for detailed setup guide.
 
 ### Step 5: Start MongoDB
 
@@ -190,54 +228,66 @@ The seed script creates 12 diverse sample invoices with various payment scenario
 
 **1. INV-2026-001** - Acme Enterprise (INR)
 - Status: DRAFT (partially paid)
-- Total: ₹85,000
+- Subtotal: ₹85,000 | GST (18%): ₹15,300
+- Total: ₹100,300
 - Amount Paid: ₹35,000
-- Balance Due: ₹50,000
+- Balance Due: ₹65,300
 
 **2. INV-2026-002** - Tech Solutions Inc (USD)
 - Status: PAID (fully paid)
-- Total: $1,500
+- Subtotal: $1,500 | Sales Tax (10%): $150
+- Total: $1,650
 - Balance: $0
 
 **3. INV-2026-003** - Global Innovations Ltd (EUR)
 - Status: DRAFT (no payment yet)
-- Total: €420
-- Balance Due: €420
+- Subtotal: €420 | VAT (20%): €84
+- Total: €504
+- Balance Due: €504
 
 **4. INV-2026-004** - Quantum Systems Pvt Ltd (INR)
 - Status: DRAFT (large invoice, partial payment)
-- Total: ₹2,50,000
-- Balance Due: ₹1,50,000
+- Subtotal: ₹2,50,000 | GST (18%): ₹45,000
+- Total: ₹2,95,000
+- Balance Due: ₹1,95,000
 
 **5. INV-2026-005** - Startup Hub India (GBP)
 - Status: PAID
-- Total: £185
+- Subtotal: £185 | VAT (20%): £37
+- Total: £222
 - Balance: £0
 
 **6. INV-2026-006** - Digital Marketing Pro (USD)
 - Status: DRAFT (almost paid)
-- Total: $810
-- Balance Due: $90
+- Subtotal: $810 | Sales Tax (10%): $81
+- Total: $891
+- Balance Due: $171
 
 **7. INV-2026-007** - Enterprise Corp (INR)
 - Status: DRAFT (large project)
-- Total: ₹3,50,000
-- Balance Due: ₹1,75,000
+- Subtotal: ₹3,50,000 | GST (18%): ₹63,000
+- Total: ₹4,13,000
+- Balance Due: ₹2,38,000
 
 **8. INV-2026-008** - Consulting Group LLC (JPY)
 - Status: PAID
-- Total: ¥142,500
+- Subtotal: ¥142,500 | Consumption Tax (10%): ¥14,250
+- Total: ¥156,750
 - Balance: ¥0
 
 **9. INV-2025-099** - Legacy Systems Inc (AUD)
 - Status: PAID (ARCHIVED)
-- Total: A$1,170
+- Subtotal: A$1,170 | GST (10%): A$117
+- Total: A$1,287
 - Balance: A$0
 
 **10-12.** Three additional invoices with various statuses
 
 ### Seed Data Features
 - Multiple realistic line items per invoice
+- **Tax calculations** with currency-specific rates
+- **Tax rates:** INR 18% GST, USD 10% Sales Tax, EUR/GBP 20% VAT, JPY 10% Consumption Tax, AUD 10% GST
+- Proper tax terminology per region (GST, VAT, Sales Tax)
 - Various payment histories (single, installments, none)
 - Different invoice sizes across various currencies
 - **Multi-currency data:** INR, USD, EUR, GBP, JPY, AUD
@@ -249,7 +299,63 @@ After seeding, the console displays all Invoice IDs with their currencies for te
 
 ## API Endpoints
 
+### Authentication Endpoints
+
+#### Initiate Google OAuth Login
+```http
+GET /api/auth/google
+```
+Redirects to Google's OAuth consent screen.
+
+#### OAuth Callback
+```http
+GET /api/auth/google/callback
+```
+Handles Google OAuth callback. Redirects to:
+- Success: `http://localhost:3000/?auth=success`
+- Failure: `http://localhost:3000/login?error=auth_failed`
+
+#### Get Current User
+```http
+GET /api/auth/user
+```
+
+**Response:**
+```json
+{
+  "user": {
+    "id": "user_id",
+    "googleId": "google_id",
+    "email": "user@example.com",
+    "name": "John Doe",
+    "picture": "https://lh3.googleusercontent.com/...",
+    "lastLogin": "2026-02-18T10:30:00.000Z"
+  }
+}
+```
+
+**Error (401 Unauthorized):**
+```json
+{
+  "message": "Not authenticated"
+}
+```
+
+#### Logout
+```http
+POST /api/auth/logout
+```
+
+**Response:**
+```json
+{
+  "message": "Logged out successfully"
+}
+```
+
 ### Invoice Endpoints
+
+**Note:** All invoice endpoints require authentication. Include session cookie in requests.
 
 #### Get Invoice Details
 ```http
@@ -303,10 +409,32 @@ POST /api/invoices/:id/restore
 
 ## Testing the Application
 
-### 1. View Invoice Dashboard
-Navigate to: `http://localhost:3000`
+### 0. Authentication Flow
 
-The homepage displays 9 invoice cards with different statuses:
+**First-time Access:**
+1. Navigate to `http://localhost:3000`
+2. You'll be automatically redirected to `/login`
+3. Click **"Continue with Google"** button
+4. Sign in with your Google account
+5. Grant permissions (email and profile)
+6. You'll be redirected back to the homepage with a success message
+7. Your profile picture, name, and email appear in the header
+
+**Logout:**
+1. Click the **Logout** button in the header
+2. You'll be redirected to the login page
+3. Your session is destroyed
+
+**Session Persistence:**
+- Sessions last 7 days
+- Closing the browser doesn't log you out
+- Refreshing the page keeps you logged in
+- Sessions are stored in MongoDB
+
+### 1. View Invoice Dashboard
+Navigate to: `http://localhost:3000` (requires authentication)
+
+The homepage displays invoice cards with different statuses:
 - Partial payments (invoices with balance due)
 - Fully paid invoices
 - Unpaid invoices
@@ -368,6 +496,10 @@ The UI is inspired by modern invoice management systems with:
 ## Architecture Highlights
 
 ### Backend Architecture
+- **Authentication Layer:** Passport.js with Google OAuth 2.0 strategy
+- **Session Management:** express-session with MongoDB store (connect-mongo)
+- **Protected Routes:** Authentication middleware on all invoice endpoints
+- **User Model:** MongoDB schema for storing Google profile data
 - **Service Layer Pattern:** Business logic separated from controllers
 - **MongoDB Transactions:** Atomic payment + invoice updates
 - **Error Handling:** Centralized error handler with custom error classes
@@ -375,9 +507,12 @@ The UI is inspired by modern invoice management systems with:
 - **Calculation Helpers:** Reusable utility functions
 
 ### Frontend Architecture
+- **Authentication Context:** React Context API for user state management
+- **Protected Routes:** Client-side route protection with automatic redirects
+- **Session Verification:** Automatic auth check on app load
 - **Next.js 16 App Router:** Server components with async params handling
 - **Server Components:** Initial data fetching for performance
-- **Client Components:** Interactive features (modals, forms)
+- **Client Components:** Interactive features (modals, forms, auth)
 - **Optimistic Updates:** Immediate UI feedback
 - **Component Composition:** Small, focused components
 - **Custom Formatting:** Manual currency/date formatting for SSR reliability
@@ -455,6 +590,67 @@ Future enhancements you can add:
 
 ## Recent Updates
 
+### Version 5.0 (February 2026)
+- **Tax Calculation System:** Comprehensive tax support for all invoices
+  - Added `subtotal`, `taxRate`, and `taxAmount` fields to Invoice model
+  - Currency-specific tax rates (GST, VAT, Sales Tax, Consumption Tax)
+  - Tax rates: INR 18% GST, USD 10% Sales Tax, EUR/GBP 20% VAT, JPY 10%, AUD 10% GST
+  - Proper tax terminology per region (GST for India/Australia, VAT for EU/UK, etc.)
+  - Automatic tax calculation in backend services
+  - Tax-inclusive totals: Total = Subtotal + Tax Amount
+- **Calculation Utilities:**
+  - `calculateInvoiceSubtotal()` - Sum of all line item totals
+  - `calculateTaxAmount()` - Tax calculation with proper rounding
+  - `calculateInvoiceTotal()` - Subtotal + Tax
+  - 2 decimal place precision for all currencies
+- **Frontend Tax Display:**
+  - Tax breakdown in TotalsSection (Subtotal, Tax Rate %, Tax Amount, Total)
+  - Dynamic tax label based on currency ("GST (18%)", "VAT (20%)", etc.)
+  - Conditional display (only shows tax if taxRate > 0)
+  - Color-coded tax information
+- **PDF Generation Updates:**
+  - Tax breakdown in PDF invoices (Subtotal, Tax, Total)
+  - Currency-specific tax labels in PDFs
+  - Professional formatting with tax separator line
+  - Tax details in payment summary section
+- **Updated Seed Data:**
+  - All 12 invoices now include realistic tax calculations
+  - Tax rates match regional standards
+  - Payment amounts updated to reflect tax-inclusive totals
+  - Console output shows tax breakdown for each invoice
+- **Backward Compatibility:**
+  - Default taxRate of 0 for existing invoices without tax
+  - Optional tax fields with smart defaults
+  - Existing invoices continue to work without modification
+
+### Version 4.0 (February 2026)
+- **Google OAuth Authentication:** Complete authentication system
+  - Passport.js integration with Google OAuth 2.0
+  - Session-based authentication with MongoDB storage
+  - Protected API routes requiring authentication
+  - User model with Google profile data
+  - Frontend authentication context provider
+  - Protected route wrapper for Next.js pages
+  - Beautiful login page with Google OAuth button
+  - User profile display in header with logout
+  - Session persistence across browser sessions
+  - 7-day session expiration
+  - Automatic auth state management
+- **Security Enhancements:**
+  - httpOnly cookies for session security
+  - CORS configuration for cross-origin requests
+  - Session validation on every request
+  - Secure cookie settings for production
+  - MongoDB session store for persistence
+- **UI/UX Improvements:**
+  - Custom SVG favicon with invoice logo
+  - Apple touch icons for iOS devices
+  - PWA manifest for installable app
+  - Theme color configuration
+  - Loading states during authentication
+  - Error handling for auth failures
+  - Success messages after login
+
 ### Version 3.0 (February 2026)
 - **Multi-Currency Support:** Added support for 6 currencies (INR, USD, EUR, GBP, JPY, AUD)
 - Currency-aware formatting with locale-specific number formats
@@ -497,6 +693,10 @@ Built as part of the MeruTechnoSoft Invoice Details Module assignment.
 git clone https://github.com/sapnendra/invoices.git
 cd invoices/server
 npm install
+
+# Configure .env file with MongoDB URI and Google OAuth credentials
+# See AUTHENTICATION_SETUP.md for detailed instructions
+
 npm run seed
 npm run dev
 ```
@@ -513,9 +713,17 @@ Open your browser and navigate to `http://localhost:3000`
 
 ### Key Testing Scenarios
 
-1. **Partial Payment (INR):** INV-2026-001 (₹50,000 balance)
-2. **Fully Paid (USD):** INV-2026-002 ($0 balance)
-3. **No Payment (EUR):** INV-2026-003 (€420 balance)
-4. **Large Invoice (INR):** INV-2026-004 (₹2,50,000 total)
-5. **Multi-Currency:** Test USD, EUR, GBP, JPY, AUD invoices
-6. **Archived (AUD):** INV-2025-099 (cannot modify)
+1. **Tax Calculations (INR + GST):** INV-2026-001 (₹85,000 subtotal + ₹15,300 tax = ₹100,300 total)
+2. **Fully Paid with Tax (USD):** INV-2026-002 ($1,500 + $150 tax = $1,650)
+3. **VAT Invoice (EUR):** INV-2026-003 (€420 + €84 VAT = €504)
+4. **Large Invoice with GST (INR):** INV-2026-004 (₹2,50,000 + ₹45,000 tax = ₹2,95,000)
+5. **Multi-Currency with Tax:** Test all currencies with their respective tax rates
+6. **Archived with Tax (AUD):** INV-2025-099 (A$1,170 + A$117 GST = A$1,287)
+
+**Tax Rate Reference:**
+- INR: 18% GST (Indian Goods & Services Tax)
+- USD: 10% Sales Tax
+- EUR: 20% VAT (Value Added Tax)
+- GBP: 20% VAT
+- JPY: 10% Consumption Tax
+- AUD: 10% GST (Australian Goods & Services Tax)

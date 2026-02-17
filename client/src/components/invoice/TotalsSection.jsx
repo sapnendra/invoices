@@ -1,18 +1,51 @@
 import Card from '@/components/ui/Card';
 import { formatCurrency, calculatePercentagePaid } from '@/lib/utils';
+import { getTaxLabel } from '@/lib/currencies';
 
-export default function TotalsSection({ total, amountPaid, balanceDue, currency = 'INR' }) {
+export default function TotalsSection({ 
+  subtotal = 0, 
+  taxRate = 0, 
+  taxAmount = 0, 
+  total, 
+  amountPaid, 
+  balanceDue, 
+  currency = 'INR' 
+}) {
   const percentagePaid = calculatePercentagePaid(total, amountPaid);
+  const taxLabel = getTaxLabel(currency);
+  const showTaxBreakdown = taxRate > 0;
 
   return (
     <Card className="sticky top-4">
       <h2 className="text-lg font-semibold text-gray-900 mb-6">Summary</h2>
       
       <div className="space-y-4">
+        {/* Subtotal */}
+        {showTaxBreakdown && (
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-gray-600">Subtotal</span>
+            <span className="text-sm font-medium text-gray-900">
+              {formatCurrency(subtotal, currency)}
+            </span>
+          </div>
+        )}
+        
+        {/* Tax */}
+        {showTaxBreakdown && (
+          <div className="flex justify-between items-center pb-4 border-b border-gray-200">
+            <span className="text-sm text-gray-600">
+              {taxLabel} ({taxRate}%)
+            </span>
+            <span className="text-sm font-medium text-gray-900">
+              {formatCurrency(taxAmount, currency)}
+            </span>
+          </div>
+        )}
+        
         {/* Total */}
         <div className="flex justify-between items-center pb-4 border-b border-gray-200">
-          <span className="text-sm text-gray-600">Total</span>
-          <span className="text-lg font-semibold text-gray-900">
+          <span className="text-sm font-semibold text-gray-900">Total</span>
+          <span className="text-lg font-bold text-gray-900">
             {formatCurrency(total, currency)}
           </span>
         </div>
