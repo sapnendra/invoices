@@ -40,7 +40,6 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
       }
     } catch (error) {
-      console.error('Auth check failed:', error);
       setUser(null);
     } finally {
       setLoading(false);
@@ -59,7 +58,7 @@ export const AuthProvider = ({ children }) => {
         router.push('/login');
       }
     } catch (error) {
-      console.error('Logout failed:', error);
+      // Logout failed
     }
   };
 

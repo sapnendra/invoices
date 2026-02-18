@@ -65,15 +65,6 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Debug middleware - log all requests with cookies
-app.use((req, res, next) => {
-  console.log(`\n=== ${req.method} ${req.path} ===`);
-  console.log('Cookies received:', req.headers.cookie || 'NONE');
-  console.log('Session ID:', req.sessionID);
-  console.log('Session passport:', req.session?.passport);
-  next();
-});
-
 // Body parsing middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

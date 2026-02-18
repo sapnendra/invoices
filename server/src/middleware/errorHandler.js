@@ -5,8 +5,6 @@ const { errorResponse } = require('../utils/responseFormatter');
  * Global error handler middleware
  */
 const errorHandler = (err, req, res, next) => {
-  console.error('Error:', err);
-
   // Default error
   let statusCode = err.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR;
   let message = err.message || 'Internal server error';

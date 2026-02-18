@@ -1,4 +1,4 @@
-# Invoice Details Module
+# Meru Technosoft - Invoice Details Module
 
 A full-stack MERN application for managing invoices and processing payments with a clean, modern UI.
 
@@ -7,7 +7,7 @@ A full-stack MERN application for managing invoices and processing payments with
 - **Backend:** Node.js, Express, MongoDB, Mongoose
 - **Authentication:** Passport.js, Google OAuth 2.0, Session-based Auth
 - **Session Storage:** express-session with MongoDB (connect-mongo)
-- **Frontend:** Next.js 16 (with App Router), React, Tailwind CSS
+- **Frontend:** React.js(Next.js 16+), Tailwind CSS
 - **Validation:** Joi (backend)
 - **Architecture:** Service Layer Pattern, Transaction-based Payments
 - **Currency:** Multi-Currency Support (INR, USD, EUR, GBP, JPY, AUD)
@@ -123,7 +123,7 @@ GOOGLE_CALLBACK_URL=http://localhost:5000/api/auth/google/callback
 
 **Generate SESSION_SECRET:**
 ```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))" OR openssl rand -base64 32 -> Terminal
 ```
 
 **Get Google OAuth Credentials:**
@@ -133,8 +133,6 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 4. Create **OAuth client ID** → **Web application**
 5. Add authorized redirect URI: `http://localhost:5000/api/auth/google/callback`
 6. Copy Client ID and Client Secret to `.env`
-
-See [AUTHENTICATION_SETUP.md](./AUTHENTICATION_SETUP.md) for detailed setup guide.
 
 ### Step 5: Start MongoDB
 
@@ -496,7 +494,7 @@ The UI is inspired by modern invoice management systems with:
 ## Architecture Highlights
 
 ### Backend Architecture
-- **Authentication Layer:** Passport.js with Google OAuth 2.0 strategy
+- **Authentication Layer:** Google OAuth 2.0 strategy
 - **Session Management:** express-session with MongoDB store (connect-mongo)
 - **Protected Routes:** Authentication middleware on all invoice endpoints
 - **User Model:** MongoDB schema for storing Google profile data
@@ -510,7 +508,7 @@ The UI is inspired by modern invoice management systems with:
 - **Authentication Context:** React Context API for user state management
 - **Protected Routes:** Client-side route protection with automatic redirects
 - **Session Verification:** Automatic auth check on app load
-- **Next.js 16 App Router:** Server components with async params handling
+- **React.js(Next.js 16+ App Router):** Server components with async params handling
 - **Server Components:** Initial data fetching for performance
 - **Client Components:** Interactive features (modals, forms, auth)
 - **Optimistic Updates:** Immediate UI feedback
@@ -826,28 +824,8 @@ curl -I https://invoices-api.yourdomain.com/api/auth/test-cookie
 - Monitor session store size in MongoDB
 - Set up monitoring/logging (e.g., Sentry, LogRocket)
 
-## Additional Features (Optional Enhancements)
-
-Future enhancements you can add:
-- PDF invoice export (with ₹ formatting)
-- Email payment receipts
-- Invoice search and filtering
-- Bulk operations
-- Payment method tracking (UPI, Card, Bank Transfer)
-- GST/Tax calculations
-- Dark mode
-- Invoice templates
-- Recurring invoices
-- **Implemented PDF generation and download**
-  - Professional PDF invoices with proper formatting
-  - Includes all invoice details, line items, and payments
-  - Download button on invoice detail page
-  - Automatic file naming based on invoice number
-- Payment reminders via email/SMS
-
 ## Recent Updates
 
-### Version 5.1 (February 2026 - Production Deployment)
 - **Production Authentication Fixes:**
   - Fixed cross-origin cookie issues for production deployment
   - Added `trust proxy` configuration for Render/Heroku compatibility
@@ -871,8 +849,6 @@ Future enhancements you can add:
   - Architecture diagrams for production setup
   - Deployment checklist for backend and frontend
   - Cookie and cross-origin setup explanation
-
-### Version 5.0 (February 2026)
 - **Tax Calculation System:** Comprehensive tax support for all invoices
   - Added `subtotal`, `taxRate`, and `taxAmount` fields to Invoice model
   - Currency-specific tax rates (GST, VAT, Sales Tax, Consumption Tax)
@@ -904,8 +880,6 @@ Future enhancements you can add:
   - Default taxRate of 0 for existing invoices without tax
   - Optional tax fields with smart defaults
   - Existing invoices continue to work without modification
-
-### Version 4.0 (February 2026)
 - **Google OAuth Authentication:** Complete authentication system
   - Passport.js integration with Google OAuth 2.0
   - Session-based authentication with MongoDB storage
@@ -933,38 +907,13 @@ Future enhancements you can add:
   - Error handling for auth failures
   - Success messages after login
 
-### Version 3.0 (February 2026)
-- **Multi-Currency Support:** Added support for 6 currencies (INR, USD, EUR, GBP, JPY, AUD)
-- Currency-aware formatting with locale-specific number formats
-- Currency field in Invoice model with enum validation
-- Updated PDF generation to use invoice-specific currency
-- Frontend components dynamically display currency symbols
-- Currency-specific payment input with appropriate symbols
-- Seed data with diverse currencies and realistic amounts
-- Proper handling of JPY (no decimal places)
-
-### Version 2.0 (February 2026)
-- Updated to Next.js 16 (with async params support)
-- Currency changed from USD ($) to Indian Rupees (₹)
-- Expanded seed data from 2 to 12 invoices
-- Added realistic Indian business scenarios
-- Fixed MongoDB driver deprecation warnings
-- Improved currency formatting for Indian numbering system
-- Enhanced homepage with invoice dashboard grid
-- Added quick payment buttons (25%, 50%, Full)
-- PDF generation and download functionality
-
-## Contributing
-
-This is a demo project. Feel free to fork and enhance!
-
 ## License
 
 MIT
 
 ## Author
 
-Built as part of the MeruTechnoSoft Invoice Details Module assignment.
+**Sapnendra Jaiswal** - Built as part of the MeruTechnoSoft Invoice Details Module assignment.
 
 ---
 

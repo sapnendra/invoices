@@ -31,7 +31,6 @@ export default function InvoiceHeader({ invoice }) {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Error downloading PDF:', error);
       alert('Failed to download PDF. Please try again.');
     } finally {
       setIsDownloading(false);

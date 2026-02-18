@@ -9,11 +9,7 @@ const router = express.Router();
  * @access  Public
  */
 router.get('/test-cookie', (req, res) => {
-  console.log('\\n=== COOKIE TEST ===');
-  console.log('Cookie header:', req.headers.cookie);
-  console.log('Session ID:', req.sessionID);
-  console.log('Session data:', req.session);
-  
+
   // Set a test value in session
   if (!req.session.testValue) {
     req.session.testValue = Date.now();
@@ -68,19 +64,11 @@ router.get(
     failureRedirect: `${process.env.CLIENT_URL}/login?error=auth_failed`,
   }),
   (req, res) => {
-    // Log authentication status for debugging
-    console.log('Auth callback - User authenticated:', req.isAuthenticated());
-    console.log('Auth callback - Session ID:', req.sessionID);
-    console.log('Auth callback - User ID:', req.user?._id);
-    
     // Ensure session is saved before redirect
     req.session.save((err) => {
       if (err) {
-        console.error('Session save error:', err);
         return res.redirect(`${process.env.CLIENT_URL}/login?error=session_error`);
       }
-      
-      console.log('Session saved successfully');
       
       // Send HTML page that redirects to frontend
       // This ensures the cookie is set before the cross-origin navigation
@@ -110,13 +98,6 @@ router.get(
  * @access  Private
  */
 router.get('/user', (req, res) => {
-  // Debug logging
-  console.log('GET /api/auth/user');
-  console.log('Session ID:', req.sessionID);
-  console.log('Session:', req.session);
-  console.log('Is Authenticated:', req.isAuthenticated());
-  console.log('User:', req.user);
-  
   if (req.isAuthenticated()) {
     return res.json({
       user: {
@@ -152,9 +133,6 @@ router.post('/logout', (req, res) => {
     }
     
     req.session.destroy((err) => {
-      if (err) {
-        console.error('Session destroy error:', err);
-      }
       res.clearCookie('connect.sid');
       res.json({
         success: true,

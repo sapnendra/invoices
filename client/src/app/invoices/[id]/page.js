@@ -23,7 +23,6 @@ function InvoiceDetailsPageContent() {
         const response = await getInvoiceById(params.id);
         setData(response.data);
       } catch (error) {
-        console.error('Error fetching invoice:', error);
         setError(error.message);
       } finally {
         setLoading(false);

@@ -85,7 +85,6 @@ function HomePage() {
       const data = await res.json();
       setInvoices(data.data || []);
     } catch (error) {
-      console.error('Error fetching invoices:', error);
       setInvoices([]);
     } finally {
       setLoading(false);
@@ -157,9 +156,12 @@ function HomePage() {
 
           <InvoicesGrid invoices={invoices} loading={loading} />
 
-          <div className="mt-8 text-center">
+          <div className="flex items-center justify-between mt-10 text-center">
             <p className="text-sm text-gray-500">
-              💡 Click any invoice to view details and add payments
+              Click any invoice to view details and add payments
+            </p>
+            <p className="text-sm">
+              Developed by <a className='text-blue-600' href='https://github.com/sapnendra' target='_blank'>Sapnendra Jaiswal</a>
             </p>
           </div>
         </div>
