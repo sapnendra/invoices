@@ -16,6 +16,11 @@ const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
+// Trust proxy - Required for Render/Heroku to work with secure cookies
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 // Connect to MongoDB
 connectDB();
 

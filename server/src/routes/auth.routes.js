@@ -26,8 +26,21 @@ router.get(
     failureRedirect: `${process.env.CLIENT_URL}/login?error=auth_failed`,
   }),
   (req, res) => {
-    // Successful authentication, redirect to frontend
-    res.redirect(`${process.env.CLIENT_URL}/?auth=success`);
+    // Log authentication status for debugging
+    console.log('Auth callback - User authenticated:', req.isAuthenticated());
+    console.log('Auth callback - Session ID:', req.sessionID);
+    
+    // Ensure session is saved before redirect
+    req.session.save((err) => {
+      if (err) {
+        console.error('Session save error:', err);
+        return res.redirect(`${process.env.CLIENT_URL}/login?error=session_error`);
+      }
+      
+      console.log('Session saved successfully');
+      // Successful authentication, redirect to frontend
+      res.redirect(`${process.env.CLIENT_URL}/?auth=success`);
+    });
   }
 );
 
@@ -37,6 +50,13 @@ router.get(
  * @access  Private
  */
 router.get('/user', (req, res) => {
+  // Debug logging
+  console.log('GET /api/auth/user');
+  console.log('Session ID:', req.sessionID);
+  console.log('Session:', req.session);
+  console.log('Is Authenticated:', req.isAuthenticated());
+  console.log('User:', req.user);
+  
   if (req.isAuthenticated()) {
     return res.json({
       user: {
