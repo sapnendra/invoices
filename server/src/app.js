@@ -54,8 +54,9 @@ app.use(
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production', // Enable secure in production (HTTPS)
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' for cross-origin
+      sameSite: 'lax', // 'lax' works for same root domain (subdomains)
       path: '/', // Explicitly set path
+      domain: process.env.NODE_ENV === 'production' ? '.sapnendra.tech' : undefined, // Share across subdomains
     },
   })
 );
