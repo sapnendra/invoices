@@ -25,12 +25,19 @@ if (process.env.NODE_ENV === 'production') {
 connectDB();
 
 // CORS configuration - Must be BEFORE other middleware
-app.use(cors({
+const corsOptions = {
   origin: process.env.CLIENT_URL || 'http://localhost:3000',
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+  exposedHeaders: ['Set-Cookie'],
+  maxAge: 86400, // 24 hours
+};
+
+app.use(cors(corsOptions));
+
+// Handle preflight requests explicitly
+app.options('*', cors(corsOptions));
 
 // Session configuration - Must be BEFORE passport
 app.use(
@@ -56,6 +63,15 @@ app.use(
 // Initialize Passport
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Debug middleware - log all requests with cookies
+app.use((req, res, next) => {
+  console.log(`\n=== ${req.method} ${req.path} ===`);
+  console.log('Cookies received:', req.headers.cookie || 'NONE');
+  console.log('Session ID:', req.sessionID);
+  console.log('Session passport:', req.session?.passport);
+  next();
+});
 
 // Body parsing middleware
 app.use(express.json());

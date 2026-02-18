@@ -4,15 +4,19 @@ const User = require('../models/User.model');
 
 // Serialize user for session
 passport.serializeUser((user, done) => {
+  console.log('Serializing user:', user.id);
   done(null, user.id);
 });
 
 // Deserialize user from session
 passport.deserializeUser(async (id, done) => {
+  console.log('Deserializing user:', id);
   try {
     const user = await User.findById(id);
+    console.log('User found:', !!user);
     done(null, user);
   } catch (error) {
+    console.error('Deserialize error:', error);
     done(error, null);
   }
 });

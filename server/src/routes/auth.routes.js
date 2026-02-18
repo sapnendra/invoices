@@ -4,6 +4,48 @@ const passport = require('../config/passport');
 const router = express.Router();
 
 /**
+ * @route   GET /api/auth/test-cookie
+ * @desc    Test if cookies are being sent
+ * @access  Public
+ */
+router.get('/test-cookie', (req, res) => {
+  console.log('\\n=== COOKIE TEST ===');
+  console.log('Cookie header:', req.headers.cookie);
+  console.log('Session ID:', req.sessionID);
+  console.log('Session data:', req.session);
+  
+  // Set a test value in session
+  if (!req.session.testValue) {
+    req.session.testValue = Date.now();
+    req.session.save((err) => {
+      if (err) {
+        return res.json({
+          success: false,
+          error: err.message,
+          cookieHeader: req.headers.cookie,
+          sessionID: req.sessionID,
+        });
+      }
+      res.json({
+        success: true,
+        message: 'Test value set in session',
+        testValue: req.session.testValue,
+        sessionID: req.sessionID,
+        cookieHeader: req.headers.cookie,
+      });
+    });
+  } else {
+    res.json({
+      success: true,
+      message: 'Cookie is working! Test value retrieved from session',
+      testValue: req.session.testValue,
+      sessionID: req.sessionID,
+      cookieHeader: req.headers.cookie,
+    });
+  }
+});
+
+/**
  * @route   GET /api/auth/google
  * @desc    Initiate Google OAuth
  * @access  Public
