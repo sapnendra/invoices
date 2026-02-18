@@ -2,9 +2,90 @@
 
 Complete API reference for the Invoice Details Module backend services.
 
-**Base URL:** `http://localhost:5000/api`
+**Base URL (Development):** `http://localhost:5000/api`  
+**Base URL (Production):** `https://invoices-api.sapnendra.tech/api`
 
 **Content-Type:** `application/json`
+
+---
+
+## 📝 Version History
+
+### v5.1.0 - Production Deployment Fixes (February 18, 2026)
+
+**🔧 Critical Production Fixes:**
+- Fixed cross-origin authentication issues in production environment
+- Resolved session cookie persistence across different domains
+- Implemented subdomain-based architecture for cookie sharing
+
+**Authentication & Session Management:**
+- Added `trust proxy` configuration for reverse proxy compatibility (Render/Heroku)
+- Configured session cookie domain as `.sapnendra.tech` for subdomain sharing
+- Changed `sameSite` policy from `none` to `lax` for same-root-domain security
+- Added explicit `req.session.save()` callback in OAuth flow
+- Implemented HTML intermediate redirect page instead of HTTP 302 redirect
+- Added `proxy: true` to express-session configuration
+
+**CORS Enhancements:**
+- Enhanced CORS configuration with explicit methods: GET, POST, PUT, DELETE, PATCH, OPTIONS
+- Added `Cookie` to allowed headers for cross-origin requests
+- Added `Set-Cookie` to exposed headers
+- Implemented explicit OPTIONS preflight handling
+- Set CORS max age to 24 hours (86400s)
+
+**Debugging & Logging:**
+- Added comprehensive request logging middleware for session tracking
+- Implemented passport serialize/deserialize logging
+- Added session and cookie inspection logs
+- Created `/api/auth/test-cookie` endpoint for cookie debugging
+- Enhanced OAuth callback logging with user ID and session information
+
+**Architecture Changes:**
+```
+Before (Not Working):
+Frontend: invoices.sapnendra.tech
+Backend: sapnendra-invoices.onrender.com
+Issue: Third-party cookies blocked ❌
+
+After (Working):
+Frontend: invoices.sapnendra.tech
+Backend: invoices-api.sapnendra.tech
+Cookie Domain: .sapnendra.tech
+Status: First-party cookies work ✅
+```
+
+**Configuration Updates:**
+- Updated session cookie configuration for production
+- Configured custom domain support in Render
+- Updated Google OAuth callback URLs
+- Modified CORS origin to support subdomain architecture
+
+**Breaking Changes:**
+- `GOOGLE_CALLBACK_URL` must now use subdomain URL
+- `CLIENT_URL` environment variable required for production
+- Cookie domain must match root domain in production
+
+**Migration Notes:**
+- Update backend to use custom subdomain (e.g., `api.yourdomain.com`)
+- Update Google OAuth console with new callback URLs
+- Set cookie domain to `.yourdomain.com` in production
+- Ensure both frontend and backend use HTTPS in production
+
+---
+
+### v5.0.0 - Tax System (February 2026)
+- Comprehensive tax calculation system with regional rates
+- Multi-currency tax support (GST, VAT, Sales Tax, Consumption Tax)
+- Tax breakdown in invoices and PDFs
+
+### v4.0.0 - Google OAuth Authentication (February 2026)
+- Passport.js integration with Google OAuth 2.0
+- Session-based authentication with MongoDB storage
+- Protected routes and user management
+
+### v3.0.0 - Multi-Currency Support (February 2026)
+- Support for 6 currencies (INR, USD, EUR, GBP, JPY, AUD)
+- Currency-aware formatting and calculations
 
 ---
 
@@ -36,7 +117,7 @@ All invoice-related API endpoints require authentication. Users must log in with
 3. Google OAuth consent screen → User approves
 4. Google redirects to `/api/auth/google/callback`
 5. Session created and stored in MongoDB
-6. User redirected to application with session cookie
+6. Backend sends HTML page that redirects to frontend with session cookie
 7. Session cookie included in all subsequent requests
 8. Server validates session on each request
 
@@ -44,8 +125,45 @@ All invoice-related API endpoints require authentication. Users must log in with
 
 - **Session Storage:** MongoDB (persistent across server restarts)
 - **Session Duration:** 7 days
-- **Cookie Settings:** httpOnly, secure (in production), sameSite: lax
+- **Cookie Settings:** 
+  - `httpOnly: true` (prevents JavaScript access)
+  - `secure: true` (HTTPS only in production)
+  - `sameSite: 'lax'` (allows same-site cross-origin requests)
+  - `domain: '.sapnendra.tech'` (shared across subdomains in production)
 - **Session Data:** User ID, Google profile information
+
+### Production Configuration
+
+**Important:** For production deployment, the application uses a subdomain architecture to avoid third-party cookie blocking:
+
+- **Frontend:** `invoices.sapnendra.tech`
+- **Backend:** `invoices-api.sapnendra.tech`
+- **Cookie Domain:** `.sapnendra.tech` (shared across both subdomains)
+
+**Why Subdomains?**
+Modern browsers block third-party cookies by default. Using subdomains under the same root domain treats cookies as first-party, allowing proper session persistence.
+
+**Environment Variables Required:**
+```env
+NODE_ENV=production
+CLIENT_URL=https://invoices.sapnendra.tech
+GOOGLE_CALLBACK_URL=https://invoices-api.sapnendra.tech/api/auth/google/callback
+SESSION_SECRET=<your-secure-random-string>
+```
+
+**Trust Proxy:**
+The application automatically enables `trust proxy` in production for compatibility with reverse proxies (Render, Heroku, Railway).
+
+### Testing Cookie Behavior
+
+Use the test endpoint to verify cookie configuration:
+
+```
+GET /api/auth/test-cookie
+```
+
+First request: Sets a test value in session  
+Second request: Retrieves the test value (proves cookie persistence)
 
 ---
 

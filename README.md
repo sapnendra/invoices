@@ -557,17 +557,274 @@ Make sure you are using a valid Invoice ID from the seed script output.
 
 ## Production Deployment
 
-### Backend
-1.Email invoice PDFs to customers
-- Bulk PDF generation for multiple invoices
-- Custom PDF templates with company brandingto production database
-3. Update `CLIENT_URL` to production frontend URL
-4. Deploy to service like Heroku, Railway, or DigitalOcean
+### Overview
+This application requires special configuration for production deployment due to cross-origin cookie requirements for authentication.
 
-### Frontend
-1. Update `NEXT_PUBLIC_API_URL` in `.env.local`
-2. Run `npm run build`
-3. Deploy to Vercel, Netlify, or similar platforms
+### ⚠️ Critical: Cookie and Cross-Origin Setup
+
+**Problem:** Modern browsers block third-party cookies by default. When your frontend and backend are on different domains (e.g., `app.example.com` and `api-backend.onrender.com`), session cookies won't work.
+
+**Solution:** Use subdomains under the same root domain:
+- ✅ **Frontend:** `invoices.yourdomain.com`
+- ✅ **Backend:** `invoices-api.yourdomain.com`
+- ❌ **Don't:** Use completely different domains
+
+### Backend Deployment (Render/Heroku/Railway)
+
+#### 1. Environment Variables
+
+Set these in your production environment:
+
+```env
+NODE_ENV=production
+PORT=10000
+MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/invoice_db
+
+# Session Secret (use a strong random string)
+SESSION_SECRET=your-secure-random-64-char-string
+
+# IMPORTANT: Use subdomain approach
+CLIENT_URL=https://invoices.yourdomain.com
+
+# Google OAuth with production URLs
+GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-client-secret
+GOOGLE_CALLBACK_URL=https://invoices-api.yourdomain.com/api/auth/google/callback
+```
+
+#### 2. Custom Domain Setup (Render Example)
+
+**Step 1:** Add custom domain in Render dashboard
+- Go to your service → Settings → Custom Domains
+- Add: `invoices-api.yourdomain.com`
+
+**Step 2:** Configure DNS (at your domain provider)
+```
+Type: CNAME
+Name: invoices-api
+Value: your-app.onrender.com
+TTL: 3600
+```
+
+**Step 3:** Wait for SSL certificate verification (5-10 minutes)
+
+#### 3. Required Code Configuration
+
+The application already includes production-ready configuration:
+
+**Trust Proxy** ([server/src/app.js](server/src/app.js)):
+```javascript
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1); // Required for Render/Heroku
+}
+```
+
+**Session Cookie for Subdomains** ([server/src/app.js](server/src/app.js)):
+```javascript
+cookie: {
+  secure: true, // HTTPS only
+  sameSite: 'lax', // Works for same root domain
+  domain: '.yourdomain.com', // Share across subdomains
+  httpOnly: true,
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+}
+```
+
+**CORS Configuration** ([server/src/app.js](server/src/app.js)):
+```javascript
+cors({
+  origin: process.env.CLIENT_URL,
+  credentials: true, // Allow cookies
+})
+```
+
+#### 4. Update Google OAuth Console
+
+[Google Cloud Console](https://console.cloud.google.com/apis/credentials):
+
+**Authorized JavaScript origins:**
+- `https://invoices.yourdomain.com`
+- `https://invoices-api.yourdomain.com`
+
+**Authorized redirect URIs:**
+- `https://invoices-api.yourdomain.com/api/auth/google/callback`
+
+### Frontend Deployment (Vercel/Netlify)
+
+#### 1. Environment Variables
+
+Update `.env.local` or add in deployment dashboard:
+
+```env
+NEXT_PUBLIC_API_URL=https://invoices-api.yourdomain.com
+```
+
+#### 2. Custom Domain Setup
+
+**Vercel:** Settings → Domains → Add `invoices.yourdomain.com`
+
+**Netlify:** Domain settings → Custom domains → Add domain
+
+**DNS Configuration:**
+```
+Type: CNAME
+Name: invoices
+Value: cname.vercel-dns.com (or netlify equivalent)
+```
+
+#### 3. Build and Deploy
+
+```bash
+cd client
+npm run build
+# Deploy based on your platform
+```
+
+### Testing Production Setup
+
+#### 1. Verify Cookie Configuration
+```bash
+curl -I https://invoices-api.yourdomain.com/api/auth/test-cookie
+# Look for: Set-Cookie: connect.sid=...; Domain=.yourdomain.com; Secure; HttpOnly; SameSite=Lax
+```
+
+#### 2. Test Authentication Flow
+1. Visit `https://invoices.yourdomain.com`
+2. Click "Continue with Google"
+3. Complete OAuth flow
+4. Should redirect back and show invoice dashboard
+5. Refresh page - should stay logged in
+
+#### 3. Verify Session Persistence
+- Close browser completely
+- Reopen and visit the app
+- Should still be logged in (session persists)
+
+### Troubleshooting Production Issues
+
+#### Problem: "Not authenticated" after login
+
+**Symptoms:**
+- OAuth succeeds but user gets redirected to login
+- Session doesn't persist between requests
+
+**Causes & Solutions:**
+
+1. **Different Root Domains**
+   - ❌ Wrong: `myapp.vercel.app` + `myapi.onrender.com`
+   - ✅ Fix: Use subdomains like `app.domain.com` + `api.domain.com`
+
+2. **Missing Trust Proxy**
+   ```javascript
+   app.set('trust proxy', 1); // Add this!
+   ```
+
+3. **Wrong Cookie Domain**
+   ```javascript
+   domain: '.yourdomain.com' // Must start with dot
+   ```
+
+4. **CORS Not Allowing Credentials**
+   ```javascript
+   cors({ credentials: true }) // Must be set
+   ```
+
+5. **Third-Party Cookie Blocking**
+   - Only happens with different domains
+   - Fix: Use subdomain approach
+
+#### Problem: CORS Errors
+
+**Check:**
+- `CLIENT_URL` environment variable matches frontend URL exactly
+- CORS includes `credentials: true`
+- Frontend includes `credentials: 'include'` in fetch requests
+
+#### Problem: SSL/HTTPS Issues
+
+**Solution:**
+- Both frontend and backend must use HTTPS in production
+- Wait for SSL certificate verification in Render/Vercel
+- Don't use `secure: true` cookies with HTTP
+
+### Architecture: Production Setup
+
+```
+┌─────────────────────────────────────────────────┐
+│  Browser                                        │
+│  ├─ Cookies: connect.sid                       │
+│  └─ Domain: .sapnendra.tech (shared)           │
+└─────────────────────────────────────────────────┘
+           │                    │
+           │                    │
+     (HTTPS)              (HTTPS + Cookie)
+           │                    │
+           ▼                    ▼
+┌────────────────┐    ┌────────────────────┐
+│   Frontend      │    │   Backend API      │
+│ invoices.       │    │ invoices-api.      │
+│ sapnendra.tech  │    │ sapnendra.tech     │
+│                 │    │                    │
+│ (Vercel/Netlify)│    │ (Render/Railway)   │
+└────────────────┘    └────────────────────┘
+                               │
+                               │
+                               ▼
+                      ┌────────────────┐
+                      │   MongoDB      │
+                      │   Atlas        │
+                      │  (Sessions +   │
+                      │   Data)        │
+                      └────────────────┘
+```
+
+### Deployment Checklist
+
+**Backend:**
+- [ ] MongoDB Atlas cluster created
+- [ ] All environment variables set
+- [ ] Custom domain configured (e.g., `invoices-api.yourdomain.com`)
+- [ ] DNS CNAME record added
+- [ ] SSL certificate verified
+- [ ] `trust proxy` enabled in code
+- [ ] Cookie domain set to `.yourdomain.com`
+- [ ] Deploy and verify server starts
+
+**Frontend:**
+- [ ] `NEXT_PUBLIC_API_URL` updated to backend subdomain
+- [ ] Custom domain configured (e.g., `invoices.yourdomain.com`)
+- [ ] DNS record added
+- [ ] Build successful
+- [ ] Deployed to production
+
+**Google OAuth:**
+- [ ] Production redirect URI added
+- [ ] JavaScript origins updated
+- [ ] Callback URL matches backend subdomain
+
+**Testing:**
+- [ ] Login flow works
+- [ ] Session persists after refresh
+- [ ] Session persists after browser restart
+- [ ] All API calls succeed
+- [ ] No CORS errors in console
+- [ ] Cookies visible in DevTools
+
+### MongoDB Atlas Setup
+
+1. Create a production cluster at [MongoDB Atlas](https://cloud.mongodb.com)
+2. Network Access: Add `0.0.0.0/0` (or specific IPs)
+3. Database Access: Create user with read/write permissions
+4. Get connection string: `mongodb+srv://user:pass@cluster.mongodb.net/dbname`
+5. Update `MONGODB_URI` in production environment
+
+### Performance Considerations
+
+- Enable MongoDB indexes on frequently queried fields
+- Use connection pooling (already configured)
+- Enable gzip compression in Express
+- Monitor session store size in MongoDB
+- Set up monitoring/logging (e.g., Sentry, LogRocket)
 
 ## Additional Features (Optional Enhancements)
 
@@ -589,6 +846,31 @@ Future enhancements you can add:
 - Payment reminders via email/SMS
 
 ## Recent Updates
+
+### Version 5.1 (February 2026 - Production Deployment)
+- **Production Authentication Fixes:**
+  - Fixed cross-origin cookie issues for production deployment
+  - Added `trust proxy` configuration for Render/Heroku compatibility
+  - Implemented subdomain-based cookie sharing (`.sapnendra.tech`)
+  - Changed `sameSite` from `none` to `lax` for same-root-domain approach
+  - Added explicit session save in OAuth callback
+  - Replaced HTTP 302 redirect with HTML intermediate page for better cookie persistence
+- **Session Configuration:**
+  - Added `proxy: true` for production reverse-proxy compatibility
+  - Explicit cookie `path: '/'` configuration
+  - Cookie domain set to `.sapnendra.tech` for subdomain sharing
+  - Enhanced CORS configuration with explicit methods and headers
+- **Debugging Enhancements:**
+  - Added comprehensive session and cookie logging
+  - New test endpoint `/api/auth/test-cookie` for debugging cookie behavior
+  - Enhanced authentication flow logging (serialize/deserialize)
+  - Request-level middleware logging for session tracking
+- **Documentation:**
+  - Comprehensive production deployment guide
+  - Troubleshooting section for common production issues
+  - Architecture diagrams for production setup
+  - Deployment checklist for backend and frontend
+  - Cookie and cross-origin setup explanation
 
 ### Version 5.0 (February 2026)
 - **Tax Calculation System:** Comprehensive tax support for all invoices
