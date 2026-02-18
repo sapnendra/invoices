@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -8,28 +8,32 @@ import AddPaymentModal from './AddPaymentModal';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { addPayment } from '@/lib/api';
 
-export default function PaymentsSection({ initialPayments, invoiceId, balanceDue, isArchived, currency = 'INR' }) {
+export default function PaymentsSection({ initialPayments, invoiceId, balanceDue, isArchived, currency = 'INR', onPaymentAdded }) {
   const [payments, setPayments] = useState(initialPayments || []);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
 
+  // Sync payments with initialPayments when they change (after refetch)
+  useEffect(() => {
+    setPayments(initialPayments || []);
+  }, [initialPayments]);
+
   const handleAddPayment = async (paymentData) => {
     setIsSubmitting(true);
     setError('');
 
     try {
-      const response = await addPayment(invoiceId, paymentData);
-      
-      // Add new payment to the list optimistically
-      setPayments([response.data.payment, ...payments]);
+      await addPayment(invoiceId, paymentData);
       
       // Close modal
       setIsModalOpen(false);
       
-      // Refresh the page to update totals
-      router.refresh();
+      // Refetch invoice data to update totals, payments list, and payment order
+      if (onPaymentAdded) {
+        await onPaymentAdded();
+      }
     } catch (err) {
       setError(err.message);
     } finally {

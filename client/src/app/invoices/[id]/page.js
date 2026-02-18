@@ -17,20 +17,18 @@ function InvoiceDetailsPageContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    async function fetchInvoice() {
-      try {
-        const response = await getInvoiceById(params.id);
-        setData(response.data);
-      } catch (error) {
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
+  const fetchInvoice = async () => {
+    try {
+      const response = await getInvoiceById(params.id);
+      setData(response.data);
+    } catch (error) {
+      setError(error.message);
     }
+  };
 
+  useEffect(() => {
     if (params.id) {
-      fetchInvoice();
+      fetchInvoice().then(() => setLoading(false));
     }
   }, [params.id]);
 
@@ -112,6 +110,7 @@ function InvoiceDetailsPageContent() {
               balanceDue={invoice.balanceDue}
               currency={invoice.currency}
               isArchived={invoice.isArchived}
+              onPaymentAdded={fetchInvoice}
             />
           </div>
 
