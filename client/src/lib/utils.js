@@ -36,6 +36,20 @@ export function formatDate(date) {
 }
 
 /**
+ * Format date and time for display
+ */
+export function formatDateTime(date) {
+  const d = new Date(date);
+  const months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} at ${hours}:${minutes}`;
+}
+
+/**
  * Format date for input field
  */
 export function formatDateForInput(date) {

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import AddPaymentModal from './AddPaymentModal';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatCurrency, formatDateTime } from '@/lib/utils';
 import { addPayment } from '@/lib/api';
 
 export default function PaymentsSection({ initialPayments, invoiceId, balanceDue, isArchived, currency = 'INR', onPaymentAdded, onUpdateTotals }) {
@@ -16,8 +16,12 @@ export default function PaymentsSection({ initialPayments, invoiceId, balanceDue
   const router = useRouter();
 
   // Sync payments with initialPayments when they change (after refetch)
+  // Sort by date descending (newest first)
   useEffect(() => {
-    setPayments(initialPayments || []);
+    const sortedPayments = (initialPayments || []).sort((a, b) => {
+      return new Date(b.paymentDate) - new Date(a.paymentDate);
+    });
+    setPayments(sortedPayments);
   }, [initialPayments]);
 
   const handleAddPayment = async (paymentData) => {
@@ -27,9 +31,9 @@ export default function PaymentsSection({ initialPayments, invoiceId, balanceDue
     try {
       const response = await addPayment(invoiceId, paymentData);
       
-      // Optimistic update: immediately add the new payment to the list
+      // Optimistic update: immediately add the new payment to the top of the list (newest first)
       if (response.data.payment) {
-        setPayments([...payments, response.data.payment]);
+        setPayments([response.data.payment, ...payments]);
       }
       
       // Optimistic update: immediately update totals
@@ -98,7 +102,7 @@ export default function PaymentsSection({ initialPayments, invoiceId, balanceDue
                   {formatCurrency(payment.amount, currency)}
                 </p>
                 <p className="text-sm text-gray-500">
-                  {formatDate(payment.paymentDate)}
+                  {formatDateTime(payment.paymentDate)}
                 </p>
               </div>
               <div className="text-green-600">
