@@ -19,13 +19,12 @@ const app = express();
 // Connect to MongoDB
 connectDB();
 
-// Determine if in production
-const isProduction = process.env.NODE_ENV === 'production';
-
 // CORS configuration - Must be BEFORE other middleware
 app.use(cors({
   origin: process.env.CLIENT_URL || 'http://localhost:3000',
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
 // Session configuration - Must be BEFORE passport
@@ -41,8 +40,8 @@ app.use(
     cookie: {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       httpOnly: true,
-      secure: isProduction, // true in production (HTTPS), false in development
-      sameSite: isProduction ? 'none' : 'lax', // 'none' for cross-site in production
+      secure: process.env.NODE_ENV === 'production', // Enable secure in production (HTTPS)
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' for cross-origin
     },
   })
 );
