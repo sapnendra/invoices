@@ -38,6 +38,7 @@ app.use(
     secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
     resave: false,
     saveUninitialized: false,
+    proxy: process.env.NODE_ENV === 'production', // Trust proxy for secure cookies
     store: MongoStore.create({
       mongoUrl: process.env.MONGODB_URI,
       touchAfter: 24 * 3600, // Update session once per 24 hours
@@ -47,6 +48,7 @@ app.use(
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production', // Enable secure in production (HTTPS)
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' for cross-origin
+      path: '/', // Explicitly set path
     },
   })
 );

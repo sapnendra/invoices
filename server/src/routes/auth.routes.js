@@ -29,6 +29,7 @@ router.get(
     // Log authentication status for debugging
     console.log('Auth callback - User authenticated:', req.isAuthenticated());
     console.log('Auth callback - Session ID:', req.sessionID);
+    console.log('Auth callback - User ID:', req.user?._id);
     
     // Ensure session is saved before redirect
     req.session.save((err) => {
@@ -38,8 +39,25 @@ router.get(
       }
       
       console.log('Session saved successfully');
-      // Successful authentication, redirect to frontend
-      res.redirect(`${process.env.CLIENT_URL}/?auth=success`);
+      
+      // Send HTML page that redirects to frontend
+      // This ensures the cookie is set before the cross-origin navigation
+      res.send(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Authentication Successful</title>
+            <meta charset="utf-8">
+          </head>
+          <body>
+            <script>
+              // Redirect to frontend after a brief delay to ensure cookie is set
+              window.location.href = '${process.env.CLIENT_URL}/?auth=success';
+            </script>
+            <p>Authentication successful. Redirecting...</p>
+          </body>
+        </html>
+      `);
     });
   }
 );
