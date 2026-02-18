@@ -21,8 +21,23 @@ function InvoiceDetailsPageContent() {
     try {
       const response = await getInvoiceById(params.id);
       setData(response.data);
+      return response.data;
     } catch (error) {
       setError(error.message);
+    }
+  };
+
+  const updateTotalsOptimistically = (paymentAmount) => {
+    if (data) {
+      setData(prevData => ({
+        ...prevData,
+        invoice: {
+          ...prevData.invoice,
+          amountPaid: prevData.invoice.amountPaid + paymentAmount,
+          balanceDue: prevData.invoice.balanceDue - paymentAmount,
+          status: prevData.invoice.balanceDue - paymentAmount <= 0 ? 'PAID' : prevData.invoice.status,
+        },
+      }));
     }
   };
 
@@ -111,6 +126,7 @@ function InvoiceDetailsPageContent() {
               currency={invoice.currency}
               isArchived={invoice.isArchived}
               onPaymentAdded={fetchInvoice}
+              onUpdateTotals={updateTotalsOptimistically}
             />
           </div>
 

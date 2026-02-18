@@ -8,7 +8,7 @@ import AddPaymentModal from './AddPaymentModal';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { addPayment } from '@/lib/api';
 
-export default function PaymentsSection({ initialPayments, invoiceId, balanceDue, isArchived, currency = 'INR', onPaymentAdded }) {
+export default function PaymentsSection({ initialPayments, invoiceId, balanceDue, isArchived, currency = 'INR', onPaymentAdded, onUpdateTotals }) {
   const [payments, setPayments] = useState(initialPayments || []);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -25,14 +25,26 @@ export default function PaymentsSection({ initialPayments, invoiceId, balanceDue
     setError('');
 
     try {
-      await addPayment(invoiceId, paymentData);
+      const response = await addPayment(invoiceId, paymentData);
       
-      // Close modal
+      // Optimistic update: immediately add the new payment to the list
+      if (response.data.payment) {
+        setPayments([...payments, response.data.payment]);
+      }
+      
+      // Optimistic update: immediately update totals
+      if (onUpdateTotals && response.data.payment) {
+        onUpdateTotals(response.data.payment.amount);
+      }
+      
+      // Close modal immediately for better UX
       setIsModalOpen(false);
       
-      // Refetch invoice data to update totals, payments list, and payment order
+      // Refetch invoice data in background (fire and forget) to ensure totals and order are correct
       if (onPaymentAdded) {
-        await onPaymentAdded();
+        onPaymentAdded().catch(() => {
+          // Silently fail in background
+        });
       }
     } catch (err) {
       setError(err.message);
